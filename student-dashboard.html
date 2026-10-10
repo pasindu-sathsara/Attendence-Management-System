@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Attendance — ICT Department</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f4f6f9;
+            color: #142d4e;
+            font-family: Arial, sans-serif;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px 32px;
+            background: #142d4e;
+            color: white;
+        }
+
+        .brand {
+            font-size: 26px;
+            font-weight: bold;
+        }
+
+        .navigation {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .navigation a {
+            padding: 8px 0;
+            border-bottom: 3px solid transparent;
+            color: white;
+            text-decoration: none;
+        }
+
+        .navigation a.active,
+        .navigation a:hover {
+            border-bottom-color: #4594ff;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: 32px;
+        }
+
+        h2 {
+            margin: 0 0 18px;
+            font-size: 23px;
+        }
+
+        .subtitle {
+            margin: 0 0 24px;
+            color: #607086;
+            line-height: 1.5;
+        }
+
+        .panel {
+            margin-bottom: 24px;
+            padding: 24px;
+            border: 1px solid #d8e0ea;
+            border-radius: 6px;
+            background: white;
+        }
+
+        .student-details {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 20px;
+            margin: 0;
+        }
+
+        .student-details dt {
+            margin-bottom: 8px;
+            color: #607086;
+            font-size: 14px;
+        }
+
+        .student-details dd {
+            margin: 0;
+            font-weight: bold;
+            line-height: 1.5;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 16px;
+            border: 1px solid #d8e0ea;
+            text-align: left;
+        }
+
+        th {
+            background: #edf1f6;
+        }
+
+        .number {
+            text-align: center;
+        }
+
+        .history-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .history-heading h2 {
+            margin: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        select {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px;
+            border: 1px solid #bdc9d8;
+            border-radius: 4px;
+            background: white;
+            color: #142d4e;
+            font: inherit;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .present {
+            background: #e6f4ec;
+            color: #21653c;
+        }
+
+        .absent {
+            background: #fceaea;
+            color: #963535;
+        }
+
+        .help-text {
+            margin: 16px 0 0;
+            color: #607086;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        a:focus-visible,
+        select:focus-visible {
+            outline: 3px solid #4594ff;
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 650px) {
+            .topbar {
+                padding: 20px;
+            }
+
+            main {
+                padding: 24px 16px;
+            }
+
+            h1 {
+                font-size: 27px;
+            }
+
+            .panel {
+                padding: 18px;
+            }
+
+            .student-details {
+                grid-template-columns: 1fr;
+            }
+
+            .module-filter {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">ICT Attendance</div>
+
+        <nav class="navigation" aria-label="Main navigation">
+            <a
+                href="student-dashboard.html"
+                class="active"
+                aria-current="page">
+                My Attendance
+            </a>
+
+            <a href="UI.html">Back to Login</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>My Attendance</h1>
+
+        <p class="subtitle">
+            ICT Department | Rajarata University of Sri Lanka
+        </p>
+
+        <section class="panel" aria-labelledby="student-heading">
+            <h2 id="student-heading">Student Details</h2>
+
+            <dl class="student-details">
+                <div>
+                    <dt>Full Name</dt>
+                    <dd>Nimal Perera</dd>
+                </div>
+
+                <div>
+                    <dt>Registration Number</dt>
+                    <dd>2023/ICT/001</dd>
+                </div>
+
+                <div>
+                    <dt>Batch</dt>
+                    <dd>2023/2024</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="panel" aria-labelledby="summary-heading">
+            <h2 id="summary-heading">Attendance Summary</h2>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Module</th>
+                            <th scope="col" class="number">Present</th>
+                            <th scope="col" class="number">Absent</th>
+                            <th scope="col" class="number">
+                                Total Sessions
+                            </th>
+                            <th scope="col" class="number">
+                                Attendance %
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <td>Database Systems</td>
+                            <td class="number">2</td>
+                            <td class="number">1</td>
+                            <td class="number">3</td>
+                            <td class="number">66.7%</td>
+                        </tr>
+
+                        <tr>
+                            <td>Programming</td>
+                            <td class="number">3</td>
+                            <td class="number">0</td>
+                            <td class="number">3</td>
+                            <td class="number">100%</td>
+                        </tr>
+
+                        <tr>
+                            <td>Computer Networks</td>
+                            <td class="number">2</td>
+                            <td class="number">1</td>
+                            <td class="number">3</td>
+                            <td class="number">66.7%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="help-text">
+                Attendance percentage = Present ÷ Total Sessions × 100.
+                This preview includes completed sessions only.
+            </p>
+        </section>
+
+        <section class="panel" aria-labelledby="history-heading">
+            <div class="history-heading">
+                <h2 id="history-heading">Attendance History</h2>
+
+                <div class="module-filter">
+                    <label for="module-filter">Module</label>
+
+                    <select id="module-filter">
+                        <option value="all">All Modules</option>
+                        <option value="database">
+                            Database Systems
+                        </option>
+                        <option value="programming">
+                            Programming
+                        </option>
+                        <option value="networks">
+                            Computer Networks
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Date</th>
+                            <th scope="col">Module</th>
+                            <th scope="col">Session</th>
+                            <th scope="col">Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="attendance-history">
+                        <tr data-module="database">
+                            <td>08 Oct 2026</td>
+                            <td>Database Systems</td>
+                            <td>Lecture 03</td>
+                            <td>
+                                <span class="status present">Present</span>
+                            </td>
+                        </tr>
+
+                        <tr data-module="programming">
+                            <td>07 Oct 2026</td>
+                            <td>Programming</td>
+                            <td>Practical 03</td>
+                            <td>
+                                <span class="status present">Present</span>
+                            </td>
+                        </tr>
+
+                        <tr data-module="networks">
+                            <td>06 Oct 2026</td>
+                            <td>Computer Networks</td>
+                            <td>Lecture 03</td>
+                            <td>
+                                <span class="status absent">Absent</span>
+                            </td>
+                        </tr>
+
+                        <tr data-module="database">
+                            <td>01 Oct 2026</td>
+                            <td>Database Systems</td>
+                            <td>Lecture 02</td>
+                            <td>
+                                <span class="status absent">Absent</span>
+                            </td>
+                        </tr>
+
+                        <tr data-module="programming">
+                            <td>30 Sep 2026</td>
+                            <td>Programming</td>
+                            <td>Practical 02</td>
+                            <td>
+                                <span class="status present">Present</span>
+                            </td>
+                        </tr>
+
+                        <tr data-module="networks">
+                            <td>29 Sep 2026</td>
+                            <td>Computer Networks</td>
+                            <td>Lecture 02</td>
+                            <td>
+                                <span class="status present">Present</span>
+                            </td>
+                        </tr>
+
+                        <tr data-module="database">
+                            <td>24 Sep 2026</td>
+                            <td>Database Systems</td>
+                            <td>Lecture 01</td>
+                            <td>
+                                <span class="status present">Present</span>
+                            </td>
+                        </tr>
+
+                        <tr data-module="programming">
+                            <td>23 Sep 2026</td>
+                            <td>Programming</td>
+                            <td>Practical 01</td>
+                            <td>
+                                <span class="status present">Present</span>
+                            </td>
+                        </tr>
+
+                        <tr data-module="networks">
+                            <td>22 Sep 2026</td>
+                            <td>Computer Networks</td>
+                            <td>Lecture 01</td>
+                            <td>
+                                <span class="status present">Present</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <p id="history-count" class="help-text" role="status">
+                Showing 9 sessions.
+            </p>
+        </section>
+
+        <p class="help-text">
+            Design preview using fictional student details and attendance.
+        </p>
+    </main>
+
+    <script>
+        const moduleFilter = document.getElementById("module-filter");
+
+        const historyRows = document.querySelectorAll(
+            "#attendance-history tr"
+        );
+
+        const historyCount = document.getElementById("history-count");
+
+        function filterHistory() {
+            const selectedModule = moduleFilter.value;
+            let visibleCount = 0;
+
+            historyRows.forEach(function (row) {
+                const matches =
+                    selectedModule === "all" ||
+                    row.dataset.module === selectedModule;
+
+                row.hidden = !matches;
+
+                if (matches) {
+                    visibleCount++;
+                }
+            });
+
+            historyCount.textContent =
+                "Showing " + visibleCount + " sessions.";
+        }
+
+        moduleFilter.addEventListener("change", filterHistory);
+
+        filterHistory();
+    </script>
+</body>
+</html>
