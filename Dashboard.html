@@ -47,13 +47,13 @@
             text-decoration: none;
         }
 
-        .navigation a.active {
-            border-bottom-color: #4594ff;
-            font-weight: bold;
-        }
-
+        .navigation a.active,
         .navigation a:hover {
             border-bottom-color: #4594ff;
+        }
+
+        .navigation a.active {
+            font-weight: bold;
         }
 
         main {
@@ -81,8 +81,7 @@
             font-size: 23px;
         }
 
-        .subtitle,
-        .description {
+        .subtitle {
             margin: 0;
             color: #607086;
             line-height: 1.5;
@@ -142,6 +141,11 @@
             background: #1256ba;
         }
 
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .outline-button {
             background: white;
             color: #1769df;
@@ -199,6 +203,12 @@
         }
 
         .status-column {
+            text-align: center;
+        }
+
+        .empty-row {
+            padding: 32px 16px;
+            color: #607086;
             text-align: center;
         }
 
@@ -270,20 +280,29 @@
         }
     </style>
 </head>
+
 <body>
     <header class="topbar">
         <div class="brand">ICT Attendance</div>
 
         <nav class="navigation" aria-label="Main navigation">
-            <a href="dashboard.html"
-               class="active"
-               aria-current="page">
+            <a
+                href="dashboard.html"
+                class="active"
+                aria-current="page">
                 Dashboard
             </a>
 
             <a href="reports.html">Reports</a>
 
-            <a href="index.html">Back to Login</a>
+            <a
+                href="manage-system.html"
+                id="manage-system-link"
+                hidden>
+                Manage System
+            </a>
+
+            <a href="UI.html">Back to Login</a>
         </nav>
     </header>
 
@@ -312,27 +331,19 @@
                 <div>
                     <label for="batch">Batch</label>
 
-                    <select id="batch">
-                        <option value="2022/2023">2022/2023</option>
-                        <option value="2023/2024" selected>
-                            2023/2024
+                    <select id="batch" required>
+                        <option value="" selected disabled>
+                            Select batch
                         </option>
-                        <option value="2024/2025">2024/2025</option>
                     </select>
                 </div>
 
                 <div>
                     <label for="module">Module</label>
 
-                    <select id="module">
-                        <option value="Database Systems">
-                            Database Systems
-                        </option>
-                        <option value="Programming">
-                            Programming
-                        </option>
-                        <option value="Computer Networks">
-                            Computer Networks
+                    <select id="module" required>
+                        <option value="" selected disabled>
+                            Select module
                         </option>
                     </select>
                 </div>
@@ -340,9 +351,9 @@
                 <div>
                     <label for="session">Session</label>
 
-                    <select id="session">
-                        <option value="lecture-05">
-                            Lecture 05 — 08 Oct 2026
+                    <select id="session" required>
+                        <option value="" selected disabled>
+                            Select session
                         </option>
                     </select>
                 </div>
@@ -355,10 +366,11 @@
             <p id="load-message" class="message" role="status"></p>
         </section>
 
-        <section id="import-panel"
-                 class="panel"
-                 aria-labelledby="import-heading"
-                 hidden>
+        <section
+            id="import-panel"
+            class="panel"
+            aria-labelledby="import-heading"
+            hidden>
 
             <h2 id="import-heading">Import Student Details</h2>
 
@@ -388,13 +400,7 @@
 
         <section class="panel" aria-labelledby="attendance-heading">
             <div class="attendance-heading">
-                <div>
-                    <h2 id="attendance-heading">Mark Attendance</h2>
-
-                    <p class="description">
-                        5 sample students
-                    </p>
-                </div>
+                <h2 id="attendance-heading">Mark Attendance</h2>
 
                 <button
                     type="button"
@@ -413,123 +419,21 @@
                             <tr>
                                 <th scope="col">Registration No</th>
                                 <th scope="col">Student Name</th>
+
                                 <th scope="col" class="status-column">
                                     Present
                                 </th>
+
                                 <th scope="col" class="status-column">
                                     Absent
                                 </th>
                             </tr>
                         </thead>
 
-                        <tbody>
+                        <tbody id="student-list">
                             <tr>
-                                <td>2023/ICT/001</td>
-                                <td>Nimal Perera</td>
-                                <td class="status-column">
-                                    <input
-                                        type="radio"
-                                        name="attendance-1"
-                                        value="present"
-                                        aria-label="Nimal Perera: Present"
-                                        required
-                                    >
-                                </td>
-                                <td class="status-column">
-                                    <input
-                                        type="radio"
-                                        name="attendance-1"
-                                        value="absent"
-                                        aria-label="Nimal Perera: Absent"
-                                    >
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>2023/ICT/002</td>
-                                <td>Amali Silva</td>
-                                <td class="status-column">
-                                    <input
-                                        type="radio"
-                                        name="attendance-2"
-                                        value="present"
-                                        aria-label="Amali Silva: Present"
-                                        required
-                                    >
-                                </td>
-                                <td class="status-column">
-                                    <input
-                                        type="radio"
-                                        name="attendance-2"
-                                        value="absent"
-                                        aria-label="Amali Silva: Absent"
-                                    >
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>2023/ICT/003</td>
-                                <td>Sahan Fernando</td>
-                                <td class="status-column">
-                                    <input
-                                        type="radio"
-                                        name="attendance-3"
-                                        value="present"
-                                        aria-label="Sahan Fernando: Present"
-                                        required
-                                    >
-                                </td>
-                                <td class="status-column">
-                                    <input
-                                        type="radio"
-                                        name="attendance-3"
-                                        value="absent"
-                                        aria-label="Sahan Fernando: Absent"
-                                    >
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>2023/ICT/004</td>
-                                <td>Kavindi Ranasinghe</td>
-                                <td class="status-column">
-                                    <input
-                                        type="radio"
-                                        name="attendance-4"
-                                        value="present"
-                                        aria-label="Kavindi Ranasinghe: Present"
-                                        required
-                                    >
-                                </td>
-                                <td class="status-column">
-                                    <input
-                                        type="radio"
-                                        name="attendance-4"
-                                        value="absent"
-                                        aria-label="Kavindi Ranasinghe: Absent"
-                                    >
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>2023/ICT/005</td>
-                                <td>Dinuka Wijesinghe</td>
-                                <td class="status-column">
-                                    <input
-                                        type="radio"
-                                        name="attendance-5"
-                                        value="present"
-                                        aria-label="Dinuka Wijesinghe: Present"
-                                        required
-                                    >
-                                </td>
-                                <td class="status-column">
-                                    <input
-                                        type="radio"
-                                        name="attendance-5"
-                                        value="absent"
-                                        aria-label="Dinuka Wijesinghe: Absent"
-                                    >
+                                <td colspan="4" class="empty-row">
+                                    No students to display.
                                 </td>
                             </tr>
                         </tbody>
@@ -537,41 +441,50 @@
                 </div>
 
                 <div class="actions">
-                    <button type="submit">
+                    <button type="submit" disabled>
                         Save Attendance
                     </button>
                 </div>
 
-                <p id="attendance-message"
-                   class="message"
-                   role="status"></p>
+                <p
+                    id="attendance-message"
+                    class="message"
+                    role="status">
+                </p>
             </form>
         </section>
     </main>
 
     <script>
         const previewRole = document.getElementById("preview-role");
+        const manageLink = document.getElementById("manage-system-link");
         const importToggle = document.getElementById("import-toggle");
         const importPanel = document.getElementById("import-panel");
         const studentFile = document.getElementById("student-file");
         const importMessage = document.getElementById("import-message");
 
+        // Design preview only.
+        // PHP must enforce the logged-in user's role later.
         function updateRolePreview() {
             const isHod = previewRole.value === "hod";
 
+            manageLink.hidden = !isHod;
             importToggle.hidden = !isHod;
+
             importPanel.hidden = true;
             importToggle.setAttribute("aria-expanded", "false");
 
-            if (!isHod) {
-                studentFile.value = "";
-                importMessage.textContent = "";
-            }
+            studentFile.value = "";
+            importMessage.textContent = "";
         }
 
         previewRole.addEventListener("change", updateRolePreview);
 
         importToggle.addEventListener("click", function () {
+            if (previewRole.value !== "hod") {
+                return;
+            }
+
             importPanel.hidden = !importPanel.hidden;
 
             importToggle.setAttribute(
@@ -582,11 +495,15 @@
 
         document.getElementById("preview-import")
             .addEventListener("click", function () {
+                if (previewRole.value !== "hod") {
+                    return;
+                }
+
                 const file = studentFile.files[0];
 
                 if (!file) {
                     importMessage.textContent =
-                        "Please select an Excel file first.";
+                        "Please select an Excel file.";
                     return;
                 }
 
@@ -598,24 +515,18 @@
 
                 importMessage.textContent =
                     "Selected: " + file.name +
-                    ". This is a design preview; the file has not " +
-                    "been read or imported.";
+                    ". Import is not connected yet.";
             });
 
         document.getElementById("load-button")
             .addEventListener("click", function () {
                 document.getElementById("load-message").textContent =
-                    "The table currently shows sample students. " +
-                    "Filtering will be connected to the database later.";
+                    "Student loading is not connected yet.";
             });
 
         document.getElementById("attendance-form")
             .addEventListener("submit", function (event) {
                 event.preventDefault();
-
-                document.getElementById("attendance-message").textContent =
-                    "Preview complete: attendance has been selected " +
-                    "for all five students. Nothing has been saved yet.";
             });
 
         updateRolePreview();
