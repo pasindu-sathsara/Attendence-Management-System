@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>ICT Attendance — Dashboard</title>
+    <title>Attendance Dashboard — ICT Attendance</title>
 
     <style>
         * {
@@ -52,14 +52,26 @@
             border-bottom-color: #4594ff;
         }
 
-        .navigation a.active {
-            font-weight: bold;
+        main {
+            max-width: 1100px;
+            margin: auto;
+            padding: 32px 24px;
         }
 
-        main {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 32px 24px;
+        h1 {
+            margin: 0 0 10px;
+            font-size: 32px;
+        }
+
+        h2 {
+            margin: 0 0 20px;
+            font-size: 23px;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: #607086;
+            line-height: 1.5;
         }
 
         .page-heading {
@@ -71,29 +83,9 @@
             margin-bottom: 24px;
         }
 
-        h1 {
-            margin: 0 0 10px;
-            font-size: 32px;
-        }
-
-        h2 {
-            margin: 0 0 10px;
-            font-size: 23px;
-        }
-
-        .subtitle {
-            margin: 0;
-            color: #607086;
-            line-height: 1.5;
-        }
-
-        .preview-role {
-            min-width: 150px;
-        }
-
         .panel {
-            margin-bottom: 24px;
             padding: 24px;
+            margin-bottom: 24px;
             border: 1px solid #d8e0ea;
             border-radius: 6px;
             background: white;
@@ -101,8 +93,7 @@
 
         .filters {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-            align-items: end;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 16px;
         }
 
@@ -114,7 +105,7 @@
         }
 
         select,
-        input[type="file"] {
+        input[type="search"] {
             width: 100%;
             min-height: 44px;
             padding: 10px;
@@ -146,44 +137,114 @@
             cursor: not-allowed;
         }
 
-        .outline-button {
+        .outline {
             background: white;
             color: #1769df;
         }
 
-        .outline-button:hover {
+        .outline:hover {
             background: #edf4ff;
         }
 
-        .attendance-heading {
+        .actions {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
             flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-top: 20px;
         }
 
-        .import-controls {
-            display: flex;
-            align-items: end;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .file-field {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .import-help {
-            margin: 0 0 20px;
+        .message {
             color: #607086;
             line-height: 1.5;
         }
 
+        .message:empty {
+            display: none;
+        }
+
+        dialog {
+            width: min(850px, 94vw);
+            max-height: 90vh;
+            padding: 0;
+            border: 1px solid #d8e0ea;
+            border-radius: 10px;
+            color: #142d4e;
+            box-shadow: 0 20px 70px #142d4e40;
+        }
+
+        dialog::backdrop {
+            background: #142d4e99;
+        }
+
+        .dialog-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 20px 24px;
+            background: #142d4e;
+            color: white;
+        }
+
+        .dialog-header h2 {
+            margin: 0;
+        }
+
+        .close-button {
+            padding: 8px 12px;
+            border-color: white;
+            background: transparent;
+        }
+
+        .dialog-content {
+            padding: 24px;
+        }
+
+        .session-details {
+            margin: 0 0 20px;
+            padding: 12px;
+            border-radius: 4px;
+            background: #edf4ff;
+            line-height: 1.5;
+        }
+
+        .bulk-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .counts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin: 16px 0;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .present-count {
+            color: #21653c;
+        }
+
+        .absent-count {
+            color: #963535;
+        }
+
+        .medical-count {
+            color: #1769df;
+        }
+
+        .unmarked-count {
+            color: #607086;
+        }
+
         .table-wrapper {
-            overflow-x: auto;
+            max-height: 400px;
+            overflow: auto;
+            border: 1px solid #d8e0ea;
+            border-radius: 6px;
         }
 
         table {
@@ -193,46 +254,70 @@
 
         th,
         td {
-            padding: 16px;
-            border: 1px solid #d8e0ea;
+            padding: 14px 16px;
+            border-bottom: 1px solid #d8e0ea;
             text-align: left;
         }
 
         th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
             background: #edf1f6;
         }
 
-        .status-column {
-            text-align: center;
+        tbody tr:last-child td {
+            border-bottom: none;
         }
 
-        .empty-row {
-            padding: 32px 16px;
+        .status-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status-button {
+            min-width: 90px;
+            padding: 9px 14px;
+            border: 1px solid #bdc9d8;
+            background: white;
             color: #607086;
+        }
+
+        .status-button:hover {
+            background: #edf1f6;
+        }
+
+        .status-button.present-selected {
+            border-color: #21653c;
+            background: #e6f4ec;
+            color: #21653c;
+        }
+
+        .status-button.absent-selected {
+            border-color: #963535;
+            background: #fceaea;
+            color: #963535;
+        }
+
+        .status-button.medical-selected {
+            border-color: #1769df;
+            background: #edf4ff;
+            color: #1769df;
+        }
+
+        .empty {
+            padding: 36px 16px;
             text-align: center;
+            color: #607086;
         }
 
-        input[type="radio"] {
-            width: 18px;
-            height: 18px;
-            accent-color: #1769df;
-            cursor: pointer;
-        }
-
-        .actions {
+        .dialog-footer {
             display: flex;
             justify-content: flex-end;
-            margin-top: 24px;
-        }
-
-        .message {
-            margin: 16px 0 0;
-            color: #607086;
-            line-height: 1.5;
-        }
-
-        .message:empty {
-            display: none;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
         }
 
         [hidden] {
@@ -241,19 +326,13 @@
 
         a:focus-visible,
         button:focus-visible,
-        input:focus-visible,
-        select:focus-visible {
+        select:focus-visible,
+        input:focus-visible {
             outline: 3px solid #4594ff;
             outline-offset: 3px;
         }
 
-        @media (max-width: 850px) {
-            .filters {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (max-width: 550px) {
+        @media (max-width: 650px) {
             .topbar {
                 padding: 20px;
             }
@@ -262,11 +341,8 @@
                 padding: 24px 16px;
             }
 
-            h1 {
-                font-size: 27px;
-            }
-
-            .panel {
+            .panel,
+            .dialog-content {
                 padding: 18px;
             }
 
@@ -274,8 +350,13 @@
                 grid-template-columns: 1fr;
             }
 
-            .actions button {
-                width: 100%;
+            h1 {
+                font-size: 27px;
+            }
+
+            .status-button {
+                min-width: 70px;
+                padding: 8px;
             }
         }
     </style>
@@ -286,19 +367,13 @@
         <div class="brand">ICT Attendance</div>
 
         <nav class="navigation" aria-label="Main navigation">
-            <a
-                href="dashboard.html"
-                class="active"
-                aria-current="page">
+            <a href="dashboard.html" class="active" aria-current="page">
                 Dashboard
             </a>
 
             <a href="reports.html">Reports</a>
 
-            <a
-                href="manage-system.html"
-                id="manage-system-link"
-                hidden>
+            <a href="manage-system.html" id="manage-link" hidden>
                 Manage System
             </a>
 
@@ -316,48 +391,46 @@
                 </p>
             </div>
 
-            <div class="preview-role">
-                <label for="preview-role">Preview role</label>
+            <div>
+                <label for="preview-role">Preview Role</label>
 
                 <select id="preview-role">
-                    <option value="hod">HOD</option>
                     <option value="lecturer">Lecturer</option>
+                    <option value="hod">HOD</option>
                 </select>
             </div>
         </div>
 
-        <section class="panel" aria-label="Class selection">
+        <section class="panel" aria-labelledby="class-heading">
+            <h2 id="class-heading">Select Class</h2>
+
             <div class="filters">
                 <div>
-                    <label for="batch">Batch</label>
+                    <label for="semester">Semester</label>
 
-                    <select id="batch" required>
-                        <option value="" selected disabled>
-                            Select batch
-                        </option>
+                    <select id="semester">
+                        <option value="">Select semester</option>
                     </select>
                 </div>
 
                 <div>
                     <label for="module">Module</label>
 
-                    <select id="module" required>
-                        <option value="" selected disabled>
-                            Select module
-                        </option>
+                    <select id="module">
+                        <option value="">Select module</option>
                     </select>
                 </div>
 
                 <div>
-                    <label for="session">Session</label>
+                    <label for="session">Class Session</label>
 
-                    <select id="session" required>
-                        <option value="" selected disabled>
-                            Select session
-                        </option>
+                    <select id="session">
+                        <option value="">Select session</option>
                     </select>
                 </div>
+            </div>
 
+            <div class="actions">
                 <button type="button" id="load-button">
                     Load Students
                 </button>
@@ -366,50 +439,74 @@
             <p id="load-message" class="message" role="status"></p>
         </section>
 
-        <section
-            id="import-panel"
-            class="panel"
-            aria-labelledby="import-heading"
-            hidden>
+        <section class="panel" aria-labelledby="workspace-heading">
+            <h2 id="workspace-heading">Attendance Workspace</h2>
 
-            <h2 id="import-heading">Import Student Details</h2>
+            <div class="actions">
+                <button type="button" id="mark-button">
+                    Mark Attendance
+                </button>
 
-            <p class="import-help">
-                Expected columns: Registration Number, Full Name,
-                Email, and Batch.
-            </p>
+                <button type="button" id="update-button" class="outline">
+                    Update Attendance
+                </button>
+            </div>
+        </section>
+    </main>
 
-            <div class="import-controls">
-                <div class="file-field">
-                    <label for="student-file">Excel File</label>
+    <dialog
+        id="attendance-dialog"
+        aria-labelledby="dialog-title"
+        aria-describedby="session-details">
 
-                    <input
-                        type="file"
-                        id="student-file"
-                        accept=".xlsx,.xls"
-                    >
-                </div>
+        <div class="dialog-header">
+            <h2 id="dialog-title">Mark Attendance</h2>
 
-                <button type="button" id="preview-import">
-                    Preview Import
+            <button
+                type="button"
+                id="close-dialog"
+                class="close-button"
+                autofocus>
+                Close
+            </button>
+        </div>
+
+        <div class="dialog-content">
+            <p id="session-details" class="session-details"></p>
+
+            <label for="student-search">Search Registration Number</label>
+
+            <input
+                type="search"
+                id="student-search"
+                placeholder="Enter registration number">
+
+            <div class="bulk-actions">
+                <button type="button" id="all-present">
+                    Mark All Present
+                </button>
+
+                <button type="button" id="clear-marks" class="outline">
+                    Clear All Marks
                 </button>
             </div>
 
-            <p id="import-message" class="message" role="status"></p>
-        </section>
+            <div class="counts" role="status" aria-live="polite">
+                <span id="present-count" class="present-count">
+                    Present: 0
+                </span>
 
-        <section class="panel" aria-labelledby="attendance-heading">
-            <div class="attendance-heading">
-                <h2 id="attendance-heading">Mark Attendance</h2>
+                <span id="absent-count" class="absent-count">
+                    Absent: 0
+                </span>
 
-                <button
-                    type="button"
-                    id="import-toggle"
-                    class="outline-button"
-                    aria-expanded="false"
-                    aria-controls="import-panel">
-                    Import Students from Excel
-                </button>
+                <span id="medical-count" class="medical-count" hidden>
+                    Medical (MC): 0
+                </span>
+
+                <span id="unmarked-count" class="unmarked-count">
+                    Unmarked: 0
+                </span>
             </div>
 
             <form id="attendance-form">
@@ -417,119 +514,400 @@
                     <table>
                         <thead>
                             <tr>
-                                <th scope="col">Registration No</th>
-                                <th scope="col">Student Name</th>
-
-                                <th scope="col" class="status-column">
-                                    Present
-                                </th>
-
-                                <th scope="col" class="status-column">
-                                    Absent
-                                </th>
+                                <th scope="col">Registration Number</th>
+                                <th scope="col">Attendance</th>
                             </tr>
                         </thead>
 
-                        <tbody id="student-list">
-                            <tr>
-                                <td colspan="4" class="empty-row">
-                                    No students to display.
-                                </td>
-                            </tr>
-                        </tbody>
+                        <tbody id="attendance-list"></tbody>
                     </table>
                 </div>
 
-                <div class="actions">
-                    <button type="submit" disabled>
+                <p id="attendance-message" class="message" role="status"></p>
+
+                <div class="dialog-footer">
+                    <button type="button" id="cancel-dialog" class="outline">
+                        Cancel
+                    </button>
+
+                    <button type="submit" id="save-button">
                         Save Attendance
                     </button>
                 </div>
-
-                <p
-                    id="attendance-message"
-                    class="message"
-                    role="status">
-                </p>
             </form>
-        </section>
-    </main>
+        </div>
+    </dialog>
 
     <script>
-        const previewRole = document.getElementById("preview-role");
-        const manageLink = document.getElementById("manage-system-link");
-        const importToggle = document.getElementById("import-toggle");
-        const importPanel = document.getElementById("import-panel");
-        const studentFile = document.getElementById("student-file");
-        const importMessage = document.getElementById("import-message");
+        const get = id => document.getElementById(id);
+        const dialog = get("attendance-dialog");
 
-        // Design preview only.
-        // PHP must enforce the logged-in user's role later.
-        function updateRolePreview() {
-            const isHod = previewRole.value === "hod";
+        // Sample data for previewing the popup.
+        // Replace with authorized class-session records from the backend.
+        let students = [
+            { registrationNumber: "2023/ICT/001", status: "present" },
+            { registrationNumber: "2023/ICT/002", status: "present" },
+            { registrationNumber: "2023/ICT/003", status: "absent" },
+            { registrationNumber: "2023/ICT/004", status: "present" },
+            { registrationNumber: "2023/ICT/005", status: "absent" },
+            { registrationNumber: "2023/ICT/006", status: "present" },
+            { registrationNumber: "2023/ICT/007", status: "present" },
+            { registrationNumber: "2023/ICT/008", status: "absent" },
+            { registrationNumber: "2023/ICT/009", status: "present" },
+            { registrationNumber: "2023/ICT/010", status: "present" }
+        ];
 
-            manageLink.hidden = !isHod;
-            importToggle.hidden = !isHod;
+        let mode = "mark";
+        let draft = new Map();
+        let original = new Map();
+        let savedStatuses = new Map();
+        let openedBy = null;
 
-            importPanel.hidden = true;
-            importToggle.setAttribute("aria-expanded", "false");
+        const roleSelect = get("preview-role");
 
-            studentFile.value = "";
-            importMessage.textContent = "";
+        roleSelect.value =
+            sessionStorage.getItem("attendance-preview-role") === "hod"
+                ? "hod"
+                : "lecturer";
+
+        // Preview only. The backend must enforce actual permissions.
+        function updateRole() {
+            get("manage-link").hidden = roleSelect.value !== "hod";
+
+            sessionStorage.setItem(
+                "attendance-preview-role",
+                roleSelect.value
+            );
         }
 
-        previewRole.addEventListener("change", updateRolePreview);
+        roleSelect.addEventListener("change", updateRole);
+        updateRole();
 
-        importToggle.addEventListener("click", function () {
-            if (previewRole.value !== "hod") {
+        get("load-button").addEventListener("click", function () {
+            get("load-message").textContent =
+                "10 sample students are available in the attendance popup.";
+        });
+
+        function canUseMedical(student) {
+            return (
+                mode === "update" &&
+                ["absent", "medical"].includes(
+                    savedStatuses.get(student.registrationNumber)
+                )
+            );
+        }
+
+        function hasChanges() {
+            return students.some(function (student) {
+                const id = student.registrationNumber;
+                return draft.get(id) !== original.get(id);
+            });
+        }
+
+        function updateCounts() {
+            let present = 0;
+            let absent = 0;
+            let medical = 0;
+
+            students.forEach(function (student) {
+                const status = draft.get(student.registrationNumber);
+
+                if (status === "present") present++;
+                if (status === "absent") absent++;
+                if (status === "medical") medical++;
+            });
+
+            get("present-count").textContent = "Present: " + present;
+            get("absent-count").textContent = "Absent: " + absent;
+            get("medical-count").textContent = "Medical (MC): " + medical;
+            get("medical-count").hidden = mode !== "update";
+
+            get("unmarked-count").textContent =
+                "Unmarked: " +
+                (students.length - present - absent - medical);
+
+            const empty = students.length === 0;
+
+            get("save-button").disabled = empty;
+            get("all-present").disabled = empty;
+            get("clear-marks").disabled = empty;
+        }
+
+        function createStatusButton(student, status, group) {
+            const id = student.registrationNumber;
+            const button = document.createElement("button");
+
+            const labels = {
+                present: "Present",
+                absent: "Absent",
+                medical: "Medical (MC)"
+            };
+
+            button.type = "button";
+            button.className = "status-button";
+            button.textContent = labels[status];
+            button.dataset.status = status;
+
+            button.setAttribute(
+                "aria-label",
+                id + ": " + labels[status]
+            );
+
+            const selected = draft.get(id) === status;
+            button.setAttribute("aria-pressed", String(selected));
+
+            if (selected) {
+                button.classList.add(status + "-selected");
+            }
+
+            button.addEventListener("click", function () {
+                if (status === "medical" && !canUseMedical(student)) {
+                    return;
+                }
+
+                draft.set(id, status);
+
+                group.querySelectorAll("button").forEach(function (item) {
+                    const active = draft.get(id) === item.dataset.status;
+
+                    item.setAttribute("aria-pressed", String(active));
+
+                    ["present", "absent", "medical"].forEach(function (value) {
+                        item.classList.toggle(
+                            value + "-selected",
+                            active && item.dataset.status === value
+                        );
+                    });
+                });
+
+                updateCounts();
+                get("attendance-message").textContent = "";
+            });
+
+            return button;
+        }
+
+        function renderStudents() {
+            const body = get("attendance-list");
+            const query = get("student-search").value.trim().toLowerCase();
+
+            body.replaceChildren();
+
+            students.forEach(function (student) {
+                if (
+                    !student.registrationNumber.toLowerCase().includes(query)
+                ) {
+                    return;
+                }
+
+                const row = document.createElement("tr");
+                const registrationCell = document.createElement("td");
+
+                registrationCell.textContent = student.registrationNumber;
+                row.appendChild(registrationCell);
+
+                const statusCell = document.createElement("td");
+                const group = document.createElement("div");
+                group.className = "status-buttons";
+
+                group.appendChild(
+                    createStatusButton(student, "present", group)
+                );
+
+                group.appendChild(
+                    createStatusButton(student, "absent", group)
+                );
+
+                // MC appears only for saved absent/medical records
+                // in the Update Attendance popup.
+                if (canUseMedical(student)) {
+                    group.appendChild(
+                        createStatusButton(student, "medical", group)
+                    );
+                }
+
+                statusCell.appendChild(group);
+                row.appendChild(statusCell);
+                body.appendChild(row);
+            });
+
+            if (!body.children.length) {
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+
+                cell.colSpan = 2;
+                cell.className = "empty";
+
+                cell.textContent = students.length
+                    ? "No matching registration numbers."
+                    : "No students loaded.";
+
+                row.appendChild(cell);
+                body.appendChild(row);
+            }
+
+            updateCounts();
+        }
+
+        function openAttendance(nextMode, trigger) {
+            mode = nextMode;
+            openedBy = trigger;
+
+            savedStatuses = new Map(
+                students.map(function (student) {
+                    return [
+                        student.registrationNumber,
+                        student.status || ""
+                    ];
+                })
+            );
+
+            original = new Map(
+                students.map(function (student) {
+                    return [
+                        student.registrationNumber,
+                        mode === "update" ? student.status || "" : ""
+                    ];
+                })
+            );
+
+            draft = new Map(original);
+
+            get("dialog-title").textContent =
+                mode === "update" ? "Update Attendance" : "Mark Attendance";
+
+            get("save-button").textContent =
+                mode === "update" ? "Save Changes" : "Save Attendance";
+
+            get("session-details").textContent =
+                ["semester", "module", "session"]
+                    .map(function (id) {
+                        return get(id).selectedOptions[0].textContent.trim();
+                    })
+                    .join(" | ");
+
+            get("student-search").value = "";
+            get("attendance-message").textContent = "";
+
+            renderStudents();
+            dialog.showModal();
+        }
+
+        function closeAttendance() {
+            if (
+                hasChanges() &&
+                !window.confirm("Discard your attendance changes?")
+            ) {
                 return;
             }
 
-            importPanel.hidden = !importPanel.hidden;
+            dialog.close();
+        }
 
-            importToggle.setAttribute(
-                "aria-expanded",
-                String(!importPanel.hidden)
-            );
+        get("mark-button").addEventListener("click", function (event) {
+            openAttendance("mark", event.currentTarget);
         });
 
-        document.getElementById("preview-import")
-            .addEventListener("click", function () {
-                if (previewRole.value !== "hod") {
-                    return;
-                }
+        get("update-button").addEventListener("click", function (event) {
+            openAttendance("update", event.currentTarget);
+        });
 
-                const file = studentFile.files[0];
+        get("close-dialog").addEventListener("click", closeAttendance);
+        get("cancel-dialog").addEventListener("click", closeAttendance);
 
-                if (!file) {
-                    importMessage.textContent =
-                        "Please select an Excel file.";
-                    return;
-                }
+        dialog.addEventListener("cancel", function (event) {
+            event.preventDefault();
+            closeAttendance();
+        });
 
-                if (!/\.(xlsx|xls)$/i.test(file.name)) {
-                    importMessage.textContent =
-                        "Please choose an .xlsx or .xls file.";
-                    return;
-                }
+        dialog.addEventListener("close", function () {
+            if (openedBy) openedBy.focus();
+        });
 
-                importMessage.textContent =
-                    "Selected: " + file.name +
-                    ". Import is not connected yet.";
+        get("student-search").addEventListener("input", renderStudents);
+
+        get("all-present").addEventListener("click", function () {
+            if (!students.length) return;
+
+            const hasAbsenceOrMedical = students.some(function (student) {
+                return ["absent", "medical"].includes(
+                    draft.get(student.registrationNumber)
+                );
             });
 
-        document.getElementById("load-button")
-            .addEventListener("click", function () {
-                document.getElementById("load-message").textContent =
-                    "Student loading is not connected yet.";
+            if (
+                hasAbsenceOrMedical &&
+                !window.confirm(
+                    "Mark the entire class present, including absent and medical records?"
+                )
+            ) {
+                return;
+            }
+
+            students.forEach(function (student) {
+                draft.set(student.registrationNumber, "present");
             });
 
-        document.getElementById("attendance-form")
-            .addEventListener("submit", function (event) {
-                event.preventDefault();
+            renderStudents();
+
+            get("attendance-message").textContent =
+                "Entire class marked present. Review exceptions before saving.";
+        });
+
+        get("clear-marks").addEventListener("click", function () {
+            if (!students.length) return;
+
+            if (!window.confirm("Clear attendance marks for the entire class?")) {
+                return;
+            }
+
+            students.forEach(function (student) {
+                draft.set(student.registrationNumber, "");
             });
 
-        updateRolePreview();
+            renderStudents();
+            get("attendance-message").textContent = "";
+        });
+
+        get("attendance-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            if (!students.length) return;
+
+            const invalid = students.some(function (student) {
+                const allowedStatuses = ["present", "absent"];
+
+                if (canUseMedical(student)) {
+                    allowedStatuses.push("medical");
+                }
+
+                return !allowedStatuses.includes(
+                    draft.get(student.registrationNumber)
+                );
+            });
+
+            if (invalid) {
+                get("attendance-message").textContent =
+                    "Mark every student before saving, including students hidden by search.";
+                return;
+            }
+
+            if (mode === "update" && !hasChanges()) {
+                get("attendance-message").textContent =
+                    "No attendance changes were made.";
+                return;
+            }
+
+            /*
+             * Connect the backend here to save draft statuses.
+             * The server must verify role, class-session permissions,
+             * and whether the saved absence is eligible for MC.
+             * Medical remains separate from Present.
+             */
+
+            get("attendance-message").textContent =
+                "Preview only. No attendance has been saved.";
+        });
     </script>
 </body>
 </html>

@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Manage System — ICT Attendance</title>
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
@@ -18,10 +15,10 @@
             font-family: Arial, sans-serif;
         }
 
-        .topbar {
+        header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             flex-wrap: wrap;
             gap: 20px;
             padding: 20px 32px;
@@ -29,122 +26,61 @@
             color: white;
         }
 
-        .brand {
-            font-size: 26px;
-            font-weight: bold;
-        }
+        .brand { font-size: 26px; font-weight: bold; }
 
-        .navigation {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-        }
+        nav { display: flex; flex-wrap: wrap; gap: 24px; }
 
-        .navigation a {
-            padding: 8px 0;
-            border-bottom: 3px solid transparent;
+        nav a {
             color: white;
             text-decoration: none;
+            padding: 8px 0;
+            border-bottom: 3px solid transparent;
         }
 
-        .navigation a.active,
-        .navigation a:hover {
-            border-bottom-color: #4594ff;
-        }
+        nav a:hover, nav a.active { border-bottom-color: #4594ff; }
 
-        .navigation a.active {
-            font-weight: bold;
-        }
+        main { max-width: 1200px; margin: auto; padding: 32px 24px; }
 
-        main {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 32px 24px;
-        }
+        h1 { margin: 0 0 10px; }
+        h2 { margin: 0 0 20px; }
+        .subtitle { color: #607086; margin: 0 0 24px; }
 
-        .page-heading {
+        .panel {
+            padding: 24px;
             margin-bottom: 24px;
+            background: white;
+            border: 1px solid #d8e0ea;
+            border-radius: 6px;
+            scroll-margin-top: 20px;
         }
 
-        h1 {
-            margin: 0 0 10px;
-            font-size: 32px;
-        }
-
-        h2 {
-            margin: 0 0 10px;
-            font-size: 23px;
-        }
-
-        .subtitle,
-        .description {
-            margin: 0;
-            color: #607086;
-            line-height: 1.5;
-        }
-
-        .hod-label {
-            display: inline-block;
-            margin-bottom: 12px;
-            padding: 6px 10px;
-            border-radius: 4px;
-            background: #edf4ff;
-            color: #1769df;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .section-navigation {
+        .section-links {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
             margin-bottom: 24px;
         }
 
-        .section-navigation a {
-            padding: 10px 16px;
+        .section-links a {
+            padding: 10px 14px;
             border: 1px solid #bdc9d8;
             border-radius: 4px;
             background: white;
             color: #142d4e;
             text-decoration: none;
-            font-weight: bold;
         }
 
-        .section-navigation a:hover {
-            background: #edf4ff;
-            border-color: #1769df;
-        }
-
-        .panel {
-            margin-bottom: 24px;
-            padding: 24px;
-            border: 1px solid #d8e0ea;
-            border-radius: 6px;
-            background: white;
-            scroll-margin-top: 20px;
-        }
-
-        .form-grid {
+        .grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 16px;
-            margin-top: 20px;
         }
 
-        .assignment-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
+        .three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: bold;
-        }
+        label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; }
 
-        input,
-        select {
+        input, select {
             width: 100%;
             min-height: 44px;
             padding: 10px;
@@ -167,472 +103,381 @@
             cursor: pointer;
         }
 
-        button:hover {
-            background: #1256ba;
-        }
+        button:hover { background: #1256ba; }
 
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
+        .actions { display: flex; justify-content: flex-end; margin-top: 20px; }
+        .message, .help { color: #607086; line-height: 1.5; }
+        .message:empty { display: none; }
 
-        .table-wrapper {
-            margin-top: 24px;
-            overflow-x: auto;
-        }
+        .table-wrapper { margin-top: 24px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px; border: 1px solid #d8e0ea; text-align: left; }
+        th { background: #edf1f6; }
+        .empty { padding: 28px; text-align: center; color: #607086; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        [hidden] { display: none !important; }
 
-        th,
-        td {
-            padding: 16px;
-            border: 1px solid #d8e0ea;
-            text-align: left;
-        }
-
-        th {
-            background: #edf1f6;
-        }
-
-        .empty-row {
-            padding: 28px 16px;
-            color: #607086;
-            text-align: center;
-        }
-
-        .message {
-            margin: 16px 0 0;
-            color: #607086;
-            line-height: 1.5;
-        }
-
-        .message:empty {
-            display: none;
-        }
-
-        .help-text {
-            margin: 16px 0 0;
-            color: #607086;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        a:focus-visible,
-        button:focus-visible,
-        input:focus-visible,
-        select:focus-visible {
+        a:focus-visible, button:focus-visible,
+        input:focus-visible, select:focus-visible {
             outline: 3px solid #4594ff;
             outline-offset: 3px;
         }
 
-        @media (max-width: 850px) {
-            .assignment-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-
-        @media (max-width: 550px) {
-            .topbar {
-                padding: 20px;
-            }
-
-            main {
-                padding: 24px 16px;
-            }
-
-            h1 {
-                font-size: 27px;
-            }
-
-            .panel {
-                padding: 18px;
-            }
-
-            .form-grid,
-            .assignment-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .form-actions button {
-                width: 100%;
-            }
-
-            .section-navigation a {
-                flex: 1 1 100%;
-                text-align: center;
-            }
+        @media (max-width: 650px) {
+            header { padding: 20px; }
+            main { padding: 24px 16px; }
+            .panel { padding: 18px; }
+            .grid, .three { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 
 <body>
-    <header class="topbar">
+    <header>
         <div class="brand">ICT Attendance</div>
 
-        <nav class="navigation" aria-label="Main navigation">
+        <nav aria-label="Main navigation">
             <a href="dashboard.html">Dashboard</a>
             <a href="reports.html">Reports</a>
-
-            <a
-                href="manage-system.html"
-                class="active"
-                aria-current="page">
+            <a href="manage-system.html" class="active" aria-current="page">
                 Manage System
             </a>
-
             <a href="UI.html">Back to Login</a>
         </nav>
     </header>
 
     <main>
-        <div class="page-heading">
-            <span class="hod-label">HOD Management</span>
+        <h1>Manage System</h1>
+        <p class="subtitle">HOD Management</p>
 
-            <h1>Manage System</h1>
+        <p id="access-message" class="message" role="status"></p>
 
-            <p class="subtitle">
-                ICT Department | Rajarata University of Sri Lanka
-            </p>
-        </div>
-
-        <nav class="section-navigation" aria-label="Management sections">
-            <a href="#staff-approvals">Staff Approvals</a>
-            <a href="#batches">Batches</a>
-            <a href="#modules">Modules</a>
-            <a href="#assignments">Lecturer Assignments</a>
-        </nav>
-
-        <!-- STAFF APPROVALS -->
-        <section
-            id="staff-approvals"
-            class="panel"
-            aria-labelledby="staff-heading">
-
-            <h2 id="staff-heading">Staff Account Approvals</h2>
-
-            <p class="description">
-                Review staff registration requests before granting access.
-            </p>
-
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th scope="col">Employee Number</th>
-                            <th scope="col">Full Name</th>
-                            <th scope="col">University Email</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="staff-requests">
-                        <tr>
-                            <td colspan="5" class="empty-row">
-                                No staff requests to display.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+        <div id="management-content" hidden>
+            <div class="section-links">
+                <a href="#import-students">Import Students</a>
+                <a href="#staff-approvals">Staff Approvals</a>
+                <a href="#semesters">Semesters</a>
+                <a href="#modules">Modules</a>
+                <a href="#assignments">Lecturer Assignments</a>
             </div>
 
-            <p class="help-text">
-                When connected, each pending request will have
-                Approve and Reject buttons.
-            </p>
-        </section>
+            <section id="import-students" class="panel">
+                <h2>Import Students from Excel</h2>
 
-        <!-- BATCH MANAGEMENT -->
-        <section
-            id="batches"
-            class="panel"
-            aria-labelledby="batch-heading">
-
-            <h2 id="batch-heading">Manage Batches</h2>
-
-            <p class="description">
-                Create the student batches used throughout the system.
-            </p>
-
-            <form id="batch-form">
-                <div class="form-grid">
-                    <div>
-                        <label for="batch-name">Batch Name</label>
-
-                        <input
-                            type="text"
-                            id="batch-name"
-                            name="batch_name"
-                            placeholder="Enter academic year"
-                            maxlength="30"
-                            required
-                        >
-                    </div>
-
-                    <div>
-                        <label for="batch-status">Status</label>
-
-                        <select
-                            id="batch-status"
-                            name="batch_status"
-                            required>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit">Add Batch</button>
-                </div>
-
-                <p id="batch-message" class="message" role="status"></p>
-            </form>
-
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th scope="col">Batch Name</th>
-                            <th scope="col">Status</th>
-                            <th scope="col">Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="batch-list">
-                        <tr>
-                            <td colspan="3" class="empty-row">
-                                No batches to display.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- MODULE MANAGEMENT -->
-        <section
-            id="modules"
-            class="panel"
-            aria-labelledby="module-heading">
-
-            <h2 id="module-heading">Manage Modules</h2>
-
-            <p class="description">
-                Create the modules used for attendance and reports.
-            </p>
-
-            <form id="module-form">
-                <div class="form-grid">
-                    <div>
-                        <label for="module-code">Module Code</label>
-
-                        <input
-                            type="text"
-                            id="module-code"
-                            name="module_code"
-                            placeholder="Enter module code"
-                            maxlength="30"
-                            required
-                        >
-                    </div>
-
-                    <div>
-                        <label for="module-name">Module Name</label>
-
-                        <input
-                            type="text"
-                            id="module-name"
-                            name="module_name"
-                            placeholder="Enter module name"
-                            maxlength="100"
-                            required
-                        >
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit">Add Module</button>
-                </div>
-
-                <p id="module-message" class="message" role="status"></p>
-            </form>
-
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th scope="col">Module Code</th>
-                            <th scope="col">Module Name</th>
-                            <th scope="col">Actions</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="module-list">
-                        <tr>
-                            <td colspan="3" class="empty-row">
-                                No modules to display.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- LECTURER ASSIGNMENTS -->
-        <section
-            id="assignments"
-            class="panel"
-            aria-labelledby="assignment-heading">
-
-            <h2 id="assignment-heading">Assign Lecturers</h2>
-
-            <p class="description">
-                Assign an approved lecturer to a module and batch.
-            </p>
-
-            <form id="assignment-form">
-                <div class="form-grid assignment-grid">
-                    <div>
-                        <label for="lecturer">Lecturer</label>
-
-                        <select id="lecturer" name="lecturer_id" required>
-                            <option value="" selected disabled>
-                                Select lecturer
-                            </option>
-                            <!-- Load approved lecturers here. -->
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="assignment-module">Module</label>
-
-                        <select
-                            id="assignment-module"
-                            name="module_id"
-                            required>
-                            <option value="" selected disabled>
-                                Select module
-                            </option>
-                            <!-- Load modules here. -->
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="assignment-batch">Batch</label>
-
-                        <select
-                            id="assignment-batch"
-                            name="batch_id"
-                            required>
-                            <option value="" selected disabled>
-                                Select batch
-                            </option>
-                            <!-- Load active batches here. -->
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit">Assign Lecturer</button>
-                </div>
-
-                <p
-                    id="assignment-message"
-                    class="message"
-                    role="status">
+                <p class="help">
+                    Columns: Registration Number, Full Name, Email, Batch.
                 </p>
-            </form>
 
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th scope="col">Lecturer</th>
-                            <th scope="col">Module</th>
-                            <th scope="col">Batch</th>
-                            <th scope="col">Actions</th>
-                        </tr>
-                    </thead>
+                <form id="import-form">
+                    <label for="student-file">Excel File</label>
+                    <input type="file" id="student-file" accept=".xlsx,.xls" required>
 
-                    <tbody id="assignment-list">
-                        <tr>
-                            <td colspan="4" class="empty-row">
-                                No lecturer assignments to display.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+                    <div class="actions">
+                        <button type="submit">Preview Import</button>
+                    </div>
 
-        <p class="help-text">
-            This page currently displays the interface only.
-            Records and account approvals will be available after
-            the backend is connected.
-        </p>
+                    <p id="import-message" class="message" role="status"></p>
+                </form>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Registration No</th>
+                                <th scope="col">Full Name</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Batch</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4" class="empty">
+                                    No import preview available.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="staff-approvals" class="panel">
+                <h2>Staff Account Approvals</h2>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Employee Number</th>
+                                <th scope="col">Full Name</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5" class="empty">
+                                    No staff requests to display.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Add Approve and Reject buttons to real pending requests. -->
+            </section>
+
+            <section id="semesters" class="panel">
+                <h2>Manage Semesters</h2>
+
+                <form id="semester-form">
+                    <div class="grid three">
+                        <div>
+                            <label for="academic-year">Academic Year</label>
+                            <input
+                                type="text"
+                                id="academic-year"
+                                placeholder="Enter academic year"
+                                maxlength="30"
+                                required>
+                        </div>
+
+                        <div>
+                            <label for="study-year">Study Year</label>
+                            <input
+                                type="number"
+                                id="study-year"
+                                min="1"
+                                step="1"
+                                required>
+                        </div>
+
+                        <div>
+                            <label for="semester-number">Semester Number</label>
+                            <input
+                                type="number"
+                                id="semester-number"
+                                min="1"
+                                step="1"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit">Add Semester</button>
+                    </div>
+
+                    <p id="semester-message" class="message" role="status"></p>
+                </form>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Academic Year</th>
+                                <th scope="col">Study Year</th>
+                                <th scope="col">Semester</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4" class="empty">
+                                    No semesters to display.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="modules" class="panel">
+                <h2>Manage Modules</h2>
+
+                <form id="module-form">
+                    <div class="grid three">
+                        <div>
+                            <label for="module-code">Module Code</label>
+                            <input type="text" id="module-code" maxlength="30" required>
+                        </div>
+
+                        <div>
+                            <label for="module-name">Module Name</label>
+                            <input type="text" id="module-name" maxlength="100" required>
+                        </div>
+
+                        <div>
+                            <label for="module-semester">Semester</label>
+                            <select id="module-semester" required>
+                                <option value="" selected disabled>
+                                    Select semester
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit">Add Module</button>
+                    </div>
+
+                    <p id="module-message" class="message" role="status"></p>
+                </form>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Module Code</th>
+                                <th scope="col">Module Name</th>
+                                <th scope="col">Semester</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4" class="empty">
+                                    No modules to display.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="assignments" class="panel">
+                <h2>Assign Lecturers to Modules</h2>
+
+                <form id="assignment-form">
+                    <div class="grid three">
+                        <div>
+                            <label for="lecturer">Lecturer</label>
+                            <select id="lecturer" required>
+                                <option value="" selected disabled>
+                                    Select lecturer
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="assignment-module">Module</label>
+                            <select id="assignment-module" required>
+                                <option value="" selected disabled>
+                                    Select module
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="assignment-semester">Semester</label>
+                            <select id="assignment-semester" required>
+                                <option value="" selected disabled>
+                                    Select semester
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit">Assign Lecturer</button>
+                    </div>
+
+                    <p id="assignment-message" class="message" role="status"></p>
+                </form>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Lecturer</th>
+                                <th scope="col">Module</th>
+                                <th scope="col">Semester</th>
+                                <th scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4" class="empty">
+                                    No lecturer assignments to display.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
     </main>
 
     <script>
-        function setupPreviewForm(formId, messageId, message) {
-            const form = document.getElementById(formId);
-            const messageElement = document.getElementById(messageId);
+        // Preview visibility only. PHP must enforce HOD authorization
+        // on this page and every management endpoint.
+        const isHod =
+            sessionStorage.getItem("attendance-preview-role") === "hod";
 
-            // Reject input containing only spaces.
-            form.querySelectorAll('input[type="text"]').forEach(
-                function (input) {
-                    input.addEventListener("input", function () {
-                        input.setCustomValidity(
-                            input.value.trim()
-                                ? ""
-                                : "Please enter a value."
-                        );
-                    });
+        document.getElementById("management-content").hidden = !isHod;
+
+        if (!isHod) {
+            document.getElementById("access-message").textContent =
+                "Select HOD in the dashboard's Preview Role to view this design.";
+        }
+
+        document.getElementById("import-form")
+            .addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                if (!isHod) return;
+
+                const file = document.getElementById("student-file").files[0];
+                const message = document.getElementById("import-message");
+
+                if (!file) {
+                    message.textContent = "Select an Excel file.";
+                    return;
                 }
-            );
+
+                if (!/\.(xlsx|xls)$/i.test(file.name)) {
+                    message.textContent = "Choose an .xlsx or .xls file.";
+                    return;
+                }
+
+                message.textContent =
+                    "Selected: " + file.name +
+                    ". Excel reading and importing are not connected yet.";
+            });
+
+        function setupForm(formId, messageId) {
+            const form = document.getElementById(formId);
+
+            form.querySelectorAll('input[type="text"]').forEach(function (input) {
+                input.addEventListener("input", function () {
+                    input.setCustomValidity(
+                        input.value.trim() ? "" : "Enter a value."
+                    );
+                });
+            });
 
             form.addEventListener("submit", function (event) {
                 event.preventDefault();
 
+                if (!isHod) return;
+
                 form.querySelectorAll('input[type="text"]').forEach(
                     function (input) {
                         input.setCustomValidity(
-                            input.value.trim()
-                                ? ""
-                                : "Please enter a value."
+                            input.value.trim() ? "" : "Enter a value."
                         );
                     }
                 );
 
-                if (!form.reportValidity()) {
-                    return;
-                }
+                if (!form.reportValidity()) return;
 
-                messageElement.textContent = message;
+                document.getElementById(messageId).textContent =
+                    "Saving is not connected yet. No changes have been saved.";
             });
         }
 
-        setupPreviewForm(
-            "batch-form",
-            "batch-message",
-            "The batch has not been saved. Connect the backend to add batches."
-        );
-
-        setupPreviewForm(
-            "module-form",
-            "module-message",
-            "The module has not been saved. Connect the backend to add modules."
-        );
-
-        setupPreviewForm(
-            "assignment-form",
-            "assignment-message",
-            "The assignment has not been saved. Connect the backend to assign lecturers."
-        );
+        setupForm("semester-form", "semester-message");
+        setupForm("module-form", "module-message");
+        setupForm("assignment-form", "assignment-message");
     </script>
 </body>
 </html>

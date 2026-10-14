@@ -4,9 +4,8 @@
         {
             "type": "chrome",
             "request": "launch",
-            "name": "Open Attendance Login",
-            "file": "${workspaceFolder}/UI.html"
+            "name": "Open Current HTML Page",
+            "file": "${file}"
         }
     ]
-    
 }

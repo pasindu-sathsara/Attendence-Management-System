@@ -19,6 +19,14 @@ body {
     max-width: 1000px;
 }
 
+.campus-banner {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-bottom: 24px;
+    border-radius: 8px;
+}
+
 .page-heading {
     margin-bottom: 32px;
     text-align: center;
@@ -50,11 +58,13 @@ body {
 .role-selector {
     display: flex;
     justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 24px;
 }
 
 .role-button {
+    min-height: 44px;
     padding: 10px 18px;
     border: 1px solid #1769df;
     border-radius: 4px;
@@ -92,15 +102,18 @@ body {
     line-height: 1.5;
 }
 
-label {
+.login-card label {
     display: block;
     margin-bottom: 8px;
     font-size: 14px;
     font-weight: bold;
 }
 
-input {
+.login-card input:not([type="checkbox"]):not([type="radio"]),
+.login-card select,
+.login-card textarea {
     width: 100%;
+    min-height: 44px;
     padding: 12px;
     margin-bottom: 20px;
     border: 1px solid #bdc9d8;
@@ -110,12 +123,42 @@ input {
     font: inherit;
 }
 
-input::placeholder {
+.login-card textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.login-card input[type="checkbox"],
+.login-card input[type="radio"] {
+    accent-color: #1769df;
+}
+
+input::placeholder,
+textarea::placeholder {
     color: #69788a;
+}
+
+.field-help {
+    margin: -12px 0 20px;
+    color: #607086;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.approval-note {
+    margin: 0 0 24px;
+    padding: 12px;
+    border: 1px solid #d8e0ea;
+    border-radius: 4px;
+    background: #edf4ff;
+    color: #142d4e;
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 .sign-in-button {
     width: 100%;
+    min-height: 44px;
     padding: 13px;
     border: none;
     border-radius: 4px;
@@ -128,6 +171,11 @@ input::placeholder {
 
 .sign-in-button:hover {
     background: #1256ba;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .registration {
@@ -146,6 +194,7 @@ input::placeholder {
 
 .create-account {
     display: block;
+    min-height: 44px;
     padding: 12px;
     border: 1px solid #1769df;
     border-radius: 4px;
@@ -159,10 +208,16 @@ input::placeholder {
 }
 
 input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
 button:focus-visible,
-.create-account:focus-visible {
+a:focus-visible {
     outline: 2px solid #142d4e;
     outline-offset: 3px;
+}
+
+[hidden] {
+    display: none !important;
 }
 
 @media (max-width: 600px) {
@@ -181,11 +236,8 @@ button:focus-visible,
     .login-card {
         padding: 24px;
     }
-    .campus-banner {
-    display: block;
-    width: 100%;
-    height: auto;
-    margin-bottom: 24px;
-    border-radius: 8px;
-}
+
+    .login-card h2 {
+        font-size: 23px;
+    }
 }
