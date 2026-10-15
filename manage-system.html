@@ -130,14 +130,15 @@
             .grid, .three { grid-template-columns: 1fr; }
         }
     </style>
+<meta name="csrf-token" content="{{ session['csrf'] }}">
 </head>
 
-<body>
+<body data-role="{{ session.get('role', '') }}">
     <header>
         <div class="brand">ICT Attendance</div>
 
         <nav aria-label="Main navigation">
-            <a href="dashboard.html">Dashboard</a>
+            <a href="/dashboard.html">Dashboard</a>
             <a href="reports.html">Reports</a>
             <a href="manage-system.html" class="active" aria-current="page">
                 Manage System
@@ -155,7 +156,7 @@
         <div id="management-content" hidden>
             <div class="section-links">
                 <a href="#import-students">Import Students</a>
-                <a href="#staff-approvals">Staff Approvals</a>
+                
                 <a href="#semesters">Semesters</a>
                 <a href="#modules">Modules</a>
                 <a href="#assignments">Lecturer Assignments</a>
@@ -165,18 +166,18 @@
                 <h2>Import Students from Excel</h2>
 
                 <p class="help">
-                    Columns: Registration Number, Full Name, Email, Batch.
+                    Columns: Registration Number, Full Name, Email. Choose the enrolment semester below.
                 </p>
 
                 <form id="import-form">
-                    <label for="student-file">Excel File</label>
-                    <input type="file" id="student-file" accept=".xlsx,.xls" required>
+                    <label for="import-semester">Enrolment Semester</label><select id="import-semester" required></select><label for="student-file">Excel File</label>
+                    <input type="file" id="student-file" accept=".xlsx" required>
 
                     <div class="actions">
                         <button type="submit">Preview Import</button>
                     </div>
 
-                    <p id="import-message" class="message" role="status"></p>
+                    <div class="actions"><button id="confirm-import" type="button" disabled>Confirm Import</button></div><p id="import-message" class="message" role="status"></p>
                 </form>
 
                 <div class="table-wrapper">
@@ -200,32 +201,7 @@
                 </div>
             </section>
 
-            <section id="staff-approvals" class="panel">
-                <h2>Staff Account Approvals</h2>
-
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th scope="col">Employee Number</th>
-                                <th scope="col">Full Name</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Status</th>
-                                <th scope="col">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colspan="5" class="empty">
-                                    No staff requests to display.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Add Approve and Reject buttons to real pending requests. -->
-            </section>
+            
 
             <section id="semesters" class="panel">
                 <h2>Manage Semesters</h2>
@@ -301,10 +277,7 @@
                             <input type="text" id="module-code" maxlength="30" required>
                         </div>
 
-                        <div>
-                            <label for="module-name">Module Name</label>
-                            <input type="text" id="module-name" maxlength="100" required>
-                        </div>
+                        
 
                         <div>
                             <label for="module-semester">Semester</label>
@@ -328,7 +301,7 @@
                         <thead>
                             <tr>
                                 <th scope="col">Module Code</th>
-                                <th scope="col">Module Name</th>
+                                <th scope="col">Academic Period</th>
                                 <th scope="col">Semester</th>
                                 <th scope="col">Actions</th>
                             </tr>
@@ -405,79 +378,30 @@
                 </div>
             </section>
         </div>
-    </main>
+    <section class="panel"><h2>Create Class Session</h2><form id="session-form"><div class="grid three"><div><label for="session-course">Module</label><select id="session-course" required></select></div><div><label for="session-date">Date</label><input id="session-date" type="date" required></div><div><label for="session-week">Week Number</label><input id="session-week" type="number" min="1" max="14" required></div></div><div class="actions"><button>Create Session</button></div><p id="session-message" class="message" role="status"></p></form></section></main>
 
-    <script>
-        // Preview visibility only. PHP must enforce HOD authorization
-        // on this page and every management endpoint.
-        const isHod =
-            sessionStorage.getItem("attendance-preview-role") === "hod";
-
-        document.getElementById("management-content").hidden = !isHod;
-
-        if (!isHod) {
-            document.getElementById("access-message").textContent =
-                "Select HOD in the dashboard's Preview Role to view this design.";
-        }
-
-        document.getElementById("import-form")
-            .addEventListener("submit", function (event) {
-                event.preventDefault();
-
-                if (!isHod) return;
-
-                const file = document.getElementById("student-file").files[0];
-                const message = document.getElementById("import-message");
-
-                if (!file) {
-                    message.textContent = "Select an Excel file.";
-                    return;
-                }
-
-                if (!/\.(xlsx|xls)$/i.test(file.name)) {
-                    message.textContent = "Choose an .xlsx or .xls file.";
-                    return;
-                }
-
-                message.textContent =
-                    "Selected: " + file.name +
-                    ". Excel reading and importing are not connected yet.";
-            });
-
-        function setupForm(formId, messageId) {
-            const form = document.getElementById(formId);
-
-            form.querySelectorAll('input[type="text"]').forEach(function (input) {
-                input.addEventListener("input", function () {
-                    input.setCustomValidity(
-                        input.value.trim() ? "" : "Enter a value."
-                    );
-                });
-            });
-
-            form.addEventListener("submit", function (event) {
-                event.preventDefault();
-
-                if (!isHod) return;
-
-                form.querySelectorAll('input[type="text"]').forEach(
-                    function (input) {
-                        input.setCustomValidity(
-                            input.value.trim() ? "" : "Enter a value."
-                        );
-                    }
-                );
-
-                if (!form.reportValidity()) return;
-
-                document.getElementById(messageId).textContent =
-                    "Saving is not connected yet. No changes have been saved.";
-            });
-        }
-
-        setupForm("semester-form", "semester-message");
-        setupForm("module-form", "module-message");
-        setupForm("assignment-form", "assignment-message");
-    </script>
+    <script src="/static/common.js"></script>
+<script>
+const get=id=>document.getElementById(id);
+get('management-content').hidden=false;
+async function refresh(){
+ const d=await api('/api/options');
+ ['module-semester','assignment-semester','import-semester'].forEach(id=>fillSelect(id,d.semesters,r=>r.id,r=>r.label,'Select semester'));
+ fillSelect('lecturer',d.lecturers,r=>r.email,r=>r.name+' ('+r.email+')','Select lecturer');
+ fillSelect('assignment-module',d.courses,r=>r.code,r=>r.code,'Select module');fillSelect('session-course',d.courses,r=>r.code,r=>r.code,'Select module');
+ tableRows(document.querySelector('#semesters tbody'),d.semesters,[r=>r.id.split('|')[0],r=>r.id.split('|')[1],r=>r.id.split('|')[2],r=>'—']);
+ tableRows(document.querySelector('#modules tbody'),d.courses,[r=>r.code,r=>r.semester.split('|')[0],r=>r.semester.split('|').slice(1).join(' / '),r=>'—']);
+ tableRows(document.querySelector('#assignments tbody'),d.assignments,[r=>r.name,r=>r.course_code,r=>'See module semester',r=>'—']);
+}
+function connect(formId,messageId,url,values){get(formId).addEventListener('submit',async e=>{e.preventDefault();try{await api(url,values());get(messageId).textContent='Saved successfully.';await refresh();}catch(err){get(messageId).textContent=err.message;}});}
+connect('semester-form','semester-message','/api/semesters',()=>({academic_year:get('academic-year').value,study_year:get('study-year').value,semester_number:get('semester-number').value}));
+connect('module-form','module-message','/api/courses',()=>({code:get('module-code').value,semester:get('module-semester').value}));
+connect('assignment-form','assignment-message','/api/assignments',()=>({email:get('lecturer').value,course:get('assignment-module').value}));
+connect('session-form','session-message','/api/sessions',()=>({course:get('session-course').value,date:get('session-date').value,week:get('session-week').value}));
+get('import-form').addEventListener('submit',async e=>{e.preventDefault();get('confirm-import').disabled=true;try{const f=new FormData();f.append('file',get('student-file').files[0]);f.append('semester',get('import-semester').value);const d=await api('/api/import-preview',f);tableRows(document.querySelector('#import-students tbody'),d.rows,[r=>r.reg,r=>r.name,r=>r.email,r=>get('import-semester').selectedOptions[0].textContent]);get('import-message').textContent=d.rows.length+' students validated. Confirm to save.';get('confirm-import').disabled=false;}catch(err){get('import-message').textContent=err.message;}});
+get('student-file').addEventListener('change',()=>get('confirm-import').disabled=true);get('import-semester').addEventListener('change',()=>get('confirm-import').disabled=true);
+get('confirm-import').addEventListener('click',async()=>{get('confirm-import').disabled=true;try{const d=await api('/api/import-confirm',{});get('import-message').textContent=d.count+' students imported/enrolled.';}catch(err){get('import-message').textContent=err.message;}});
+refresh().catch(err=>get('access-message').textContent=err.message);
+</script>
 </body>
 </html>

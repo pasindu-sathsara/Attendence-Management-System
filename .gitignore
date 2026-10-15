@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+config.json
+.session-secret
+.activation-codes.json
+.imports/

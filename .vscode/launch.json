@@ -1,11 +1,4 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "chrome",
-            "request": "launch",
-            "name": "Open Current HTML Page",
-            "file": "${file}"
-        }
-    ]
+ "version": "0.2.0",
+ "configurations": [{"type":"chrome","request":"launch","name":"Open Flask Attendance System","url":"http://127.0.0.1:5000","webRoot":"${workspaceFolder}"}]
 }

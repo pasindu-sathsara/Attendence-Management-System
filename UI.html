@@ -7,8 +7,9 @@
     <title>ICT Attendance — Login</title>
 
     <link rel="stylesheet" href="style.css">
+<meta name="csrf-token" content="{{ session['csrf'] }}">
 </head>
-<body>
+<body data-role="{{ session.get('role', '') }}">
     <main class="login-page">
         
         <header class="page-heading">
@@ -41,21 +42,21 @@
             <h2 id="login-heading">Student Login</h2>
 
             <p id="description" class="description">
-                View your attendance and student profile.
+                View your own attendance.
             </p>
 
             <form
                 id="login-form"
-                action="student-login.php"
+                action="/api/login"
                 method="post">
 
-                <label for="username">Username</label>
+                <label for="username">Email Address</label>
 
                 <input
-                    type="text"
+                    type="email"
                     id="username"
                     name="username"
-                    placeholder="Enter your username"
+                    placeholder="Enter your email"
                     autocomplete="username"
                     required
                 >
@@ -77,7 +78,7 @@
                     type="submit">
                     Student Sign In
                 </button>
-            </form>
+            <p id="login-message" role="status"></p></form>
 
             <div class="registration">
                 <p id="account-message">
@@ -94,7 +95,8 @@
         </section>
     </main>
 
-    <script>
+    <script src="/static/common.js"></script>
+<script>
         const roleButtons = document.querySelectorAll(".role-button");
         const heading = document.getElementById("login-heading");
         const description = document.getElementById("description");
@@ -114,7 +116,7 @@
 
             description.textContent = isStaff
                 ? "For lecturers and department staff."
-                : "View your attendance and student profile.";
+                : "View your own attendance.";
 
             signIn.textContent = isStaff
                 ? "Staff Sign In"
@@ -132,9 +134,7 @@
                 ? "staff-register.html"
                 : "student-register.html";
 
-            form.action = isStaff
-                ? "staff-login.php"
-                : "student-login.php";
+            form.action = '/api/login';
 
             roleButtons.forEach(function (button) {
                 const selected = button.dataset.role === selectedRole;
@@ -157,6 +157,11 @@
         });
 
         updateLogin(currentRole);
+        form.addEventListener('submit', async function(event){
+            event.preventDefault();
+            try { const result=await api('/api/login',{email:document.getElementById('username').value,password:document.getElementById('password').value,kind:currentRole});location.href=result.next; }
+            catch(err){document.getElementById('login-message').textContent=err.message;}
+        });
     </script>
 </body>
 </html>

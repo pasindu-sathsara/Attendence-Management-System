@@ -156,14 +156,15 @@
             tr { break-inside: avoid; }
         }
     </style>
+<meta name="csrf-token" content="{{ session['csrf'] }}">
 </head>
 
-<body>
+<body data-role="{{ session.get('role', '') }}">
     <header>
         <div class="brand">ICT Attendance</div>
 
         <nav aria-label="Main navigation">
-            <a href="dashboard.html">Dashboard</a>
+            <a href="/dashboard.html">Dashboard</a>
             <a href="reports.html" class="active" aria-current="page">Reports</a>
             <a href="manage-system.html" id="manage-link" hidden>Manage System</a>
             <a href="UI.html">Back to Login</a>
@@ -252,7 +253,7 @@
                     <thead>
                         <tr>
                             <th scope="col">Registration No</th>
-                            <th scope="col">Student Name</th>
+                            <th scope="col">Module Code</th>
                             <th scope="col" class="number">Present</th>
                             <th scope="col" class="number">Absent</th>
                             <th scope="col" class="number">Completed Sessions</th>
@@ -276,47 +277,22 @@
         </section>
     </main>
 
-    <script>
-        // Preview visibility only.
-        // The backend must restrict lecturer reports to authorized classes.
-        document.getElementById("manage-link").hidden =
-            sessionStorage.getItem("attendance-preview-role") !== "hod";
-
-        const form = document.getElementById("report-form");
-        const startDate = document.getElementById("start-date");
-        const endDate = document.getElementById("end-date");
-
-        function validateDates() {
-            endDate.setCustomValidity("");
-
-            if (
-                startDate.value &&
-                endDate.value &&
-                startDate.value > endDate.value
-            ) {
-                endDate.setCustomValidity(
-                    "The To Date must be on or after the From Date."
-                );
-            }
-        }
-
-        startDate.addEventListener("input", validateDates);
-        endDate.addEventListener("input", validateDates);
-
-        form.addEventListener("submit", function (event) {
-            event.preventDefault();
-            validateDates();
-
-            if (!form.reportValidity()) return;
-
-            document.getElementById("report-message").textContent =
-                "Report loading is not connected yet.";
-        });
-
-        document.getElementById("print-button")
-            .addEventListener("click", function () {
-                if (!this.disabled) window.print();
-            });
-    </script>
+    <script src="/static/common.js"></script>
+<script>
+const get=id=>document.getElementById(id);let options;
+get('manage-link').hidden=document.body.dataset.role!=='hod';
+api('/api/options').then(d=>{options=d;fillSelect('semester',d.semesters,r=>r.id,r=>r.label,'Select semester');}).catch(err=>get('report-message').textContent=err.message);
+get('semester').addEventListener('change',()=>{fillSelect('module',options.courses.filter(c=>c.semester===get('semester').value),c=>c.code,c=>c.code,'Select module');get('print-button').disabled=true;});
+get('module').addEventListener('change',()=>get('print-button').disabled=true);
+get('report-form').addEventListener('submit',async event=>{event.preventDefault();get('print-button').disabled=true;try{
+ const params=new URLSearchParams({course:get('module').value,start:get('start-date').value,end:get('end-date').value});const d=await api('/api/report?'+params);
+ tableRows(get('report-body'),d.rows,[r=>r.reg,r=>get('module').value,r=>r.present,r=>r.absent+' (MC: '+r.medical+')',r=>r.total,r=>percentage(r)]);
+ get('total-students').textContent=d.rows.length;get('total-sessions').textContent=d.sessions;
+ const total=d.rows.reduce((n,r)=>n+r.total,0),present=d.rows.reduce((n,r)=>n+r.present,0);get('class-attendance').textContent=total?(100*present/total).toFixed(1)+'%':'—';
+ get('report-details').textContent=get('semester').selectedOptions[0].textContent+' | Module '+get('module').value+' | '+get('start-date').value+' to '+get('end-date').value;
+ get('report-message').textContent='Report generated. MC is not counted as present; unmarked and future sessions are excluded.';get('print-button').disabled=!total;
+ }catch(err){get('report-message').textContent=err.message;}});
+get('print-button').addEventListener('click',()=>window.print());
+</script>
 </body>
 </html>

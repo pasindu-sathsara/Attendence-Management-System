@@ -177,9 +177,10 @@
             }
         }
     </style>
+<meta name="csrf-token" content="{{ session['csrf'] }}">
 </head>
 
-<body>
+<body data-role="{{ session.get('role', '') }}">
     <header class="topbar">
         <div class="brand">ICT Attendance</div>
 
@@ -224,7 +225,7 @@
                     <thead>
                         <tr>
                             <th scope="col">Module Code</th>
-                            <th scope="col">Module Name</th>
+                            <th scope="col">Academic Period</th>
 
                             <th scope="col" class="number">
                                 Present
@@ -264,9 +265,17 @@
             </div>
 
             <p class="help-text">
-                Attendance percentage = Present ÷ Completed Sessions × 100.
+                Attendance percentage = Present ÷ Recorded Completed Sessions × 100. MC is shown separately and is not counted as Present. Unmarked and future sessions are excluded.
             </p>
         </section>
-    </main>
-</body>
+    <p id="student-message" role="status" style="color:#607086"></p></main>
+<script src="/static/common.js"></script>
+<script>
+api('/api/my-attendance').then(d=>{
+ document.getElementById('student-name').textContent=d.student.name;
+ document.getElementById('registration-number').textContent=d.student.reg_number;
+ document.getElementById('academic-year').textContent='Shown per module';document.getElementById('semester').textContent='Shown per module';
+ tableRows(document.getElementById('module-attendance'),d.rows,[r=>r.course_code,r=>r.academic_year+' · Year '+r.study_year+' · Semester '+r.semester_number,r=>r.present,r=>r.absent+' (MC: '+r.medical+')',r=>r.total,r=>percentage(r)]);
+}).catch(err=>document.getElementById('student-message').textContent=err.message);
+</script></body>
 </html>

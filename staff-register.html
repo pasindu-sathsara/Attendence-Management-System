@@ -27,8 +27,9 @@
             line-height: 1.5;
         }
     </style>
+<meta name="csrf-token" content="{{ session['csrf'] }}">
 </head>
-<body>
+<body data-role="{{ session.get('role', '') }}">
     <main class="login-page">
         <header class="page-heading">
             <h1>ICT Department Attendance System</h1>
@@ -42,89 +43,12 @@
             <h2 id="register-heading">Create Staff Account</h2>
 
             <p class="description">
-                Enter your staff details to request an account.
+                Contact the department to obtain a staff account.
             </p>
 
-            <p class="approval-note">
-                Your account requires approval from the HOD or
-                administrator before you can sign in.
-            </p>
+            
 
-            <form
-                id="registration-form"
-                action="staff-register.php"
-                method="post">
-
-                <label for="full-name">Full Name</label>
-                <input
-                    type="text"
-                    id="full-name"
-                    name="full_name"
-                    placeholder="Enter your full name"
-                    autocomplete="name"
-                    required
-                >
-
-                <label for="employee-number">Employee Number</label>
-                <input
-                    type="text"
-                    id="employee-number"
-                    name="employee_number"
-                    placeholder="Enter your employee number"
-                    required
-                >
-
-                <label for="email">University Email Address</label>
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="Enter your university email"
-                    autocomplete="email"
-                    required
-                >
-
-                <label for="username">Username</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    placeholder="Choose a username"
-                    autocomplete="username"
-                    required
-                >
-
-                <label for="password">Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Create a password"
-                    autocomplete="new-password"
-                    minlength="8"
-                    aria-describedby="password-help"
-                    required
-                >
-
-                <p id="password-help" class="field-help">
-                    Use at least 8 characters.
-                </p>
-
-                <label for="confirm-password">Confirm Password</label>
-                <input
-                    type="password"
-                    id="confirm-password"
-                    name="confirm_password"
-                    placeholder="Enter your password again"
-                    autocomplete="new-password"
-                    minlength="8"
-                    required
-                >
-
-                <button type="submit" class="sign-in-button">
-                    Request Staff Account
-                </button>
-            </form>
+            <p class="approval-note">Staff accounts are created by the system administrator. Contact your department to obtain an account.</p>
 
             <div class="registration">
                 <p>Already have a staff account?</p>
@@ -136,32 +60,7 @@
         </section>
     </main>
 
-    <script>
-        const form = document.getElementById("registration-form");
-        const password = document.getElementById("password");
-        const confirmation = document.getElementById("confirm-password");
+    <script src="/static/common.js"></script>
 
-        function checkPasswords() {
-            if (confirmation.value !== password.value) {
-                confirmation.setCustomValidity(
-                    "The passwords do not match."
-                );
-            } else {
-                confirmation.setCustomValidity("");
-            }
-        }
-
-        password.addEventListener("input", checkPasswords);
-        confirmation.addEventListener("input", checkPasswords);
-
-        form.addEventListener("submit", function (event) {
-            checkPasswords();
-
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                form.reportValidity();
-            }
-        });
-    </script>
 </body>
 </html>
