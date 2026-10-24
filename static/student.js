@@ -1,0 +1,4 @@
+let records=[];
+function render(page=1){const rows=records.filter(r=>r.academic_year===$('my-year').value&&r.course_code.toLowerCase().includes($('my-search').value.toLowerCase()));tableRows($('my-rows'),rows.slice((page-1)*10,page*10),[r=>r.course_code,r=>r.study_year,r=>r.semester_number,r=>r.present,r=>r.absent,r=>r.total,percentage,r=>r.eligibility]);pager('my-pager',{total:rows.length,page,pages:Math.max(1,Math.ceil(rows.length/10))},render);}
+$('my-year').onchange=()=>render();$('my-search').oninput=()=>render();
+(async()=>{try{const r=await api('/api/my-attendance');records=r.rows;$('student-name').textContent=r.student.reg_number+' · '+r.student.name;const years=[...new Set(records.map(r=>r.academic_year))];fillSelect('my-year',years,r=>r,r=>r,'Select academic year');if(years.length)$('my-year').value=years[0];render();}catch(e){message('my-message',e.message,true);}})();

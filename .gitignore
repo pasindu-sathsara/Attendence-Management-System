@@ -4,3 +4,5 @@ config.json
 .session-secret
 .activation-codes.json
 .imports/
+account-details*.csv
+account-details*.xlsx

@@ -1,167 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>ICT Attendance — Login</title>
-
-    <link rel="stylesheet" href="style.css">
-<meta name="csrf-token" content="{{ session['csrf'] }}">
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <meta name="csrf-token" content="{{ session.csrf }}">
+ <title>{{ portal|capitalize }} Login</title>
+ <link rel="stylesheet" href="/static/app.css">
 </head>
-<body data-role="{{ session.get('role', '') }}">
-    <main class="login-page">
-        
-        <header class="page-heading">
-            <h1>ICT Department Attendance System</h1>
-            <p>Rajarata University of Sri Lanka</p>
-        </header>
-
-        <section class="login-card" aria-labelledby="login-heading">
-            <div class="role-selector"
-                 role="group"
-                 aria-label="Choose your login role">
-
-                <button
-                    type="button"
-                    class="role-button active"
-                    data-role="student"
-                    aria-pressed="true">
-                    Student
-                </button>
-
-                <button
-                    type="button"
-                    class="role-button"
-                    data-role="staff"
-                    aria-pressed="false">
-                    Staff
-                </button>
-            </div>
-
-            <h2 id="login-heading">Student Login</h2>
-
-            <p id="description" class="description">
-                View your own attendance.
-            </p>
-
-            <form
-                id="login-form"
-                action="/api/login"
-                method="post">
-
-                <label for="username">Email Address</label>
-
-                <input
-                    type="email"
-                    id="username"
-                    name="username"
-                    placeholder="Enter your email"
-                    autocomplete="username"
-                    required
-                >
-
-                <label for="password">Password</label>
-
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Enter your password"
-                    autocomplete="current-password"
-                    required
-                >
-
-                <button
-                    id="sign-in"
-                    class="sign-in-button"
-                    type="submit">
-                    Student Sign In
-                </button>
-            <p id="login-message" role="status"></p></form>
-
-            <div class="registration">
-                <p id="account-message">
-                    Don't have a student account?
-                </p>
-
-                <a
-                    id="create-account"
-                    class="create-account"
-                    href="student-register.html">
-                    Create Student Account
-                </a>
-            </div>
-        </section>
-    </main>
-
-    <script src="/static/common.js"></script>
-<script>
-        const roleButtons = document.querySelectorAll(".role-button");
-        const heading = document.getElementById("login-heading");
-        const description = document.getElementById("description");
-        const form = document.getElementById("login-form");
-        const signIn = document.getElementById("sign-in");
-        const accountMessage = document.getElementById("account-message");
-        const createAccount = document.getElementById("create-account");
-
-        let currentRole = "student";
-
-        function updateLogin(selectedRole) {
-            const isStaff = selectedRole === "staff";
-
-            heading.textContent = isStaff
-                ? "Staff Login"
-                : "Student Login";
-
-            description.textContent = isStaff
-                ? "For lecturers and department staff."
-                : "View your own attendance.";
-
-            signIn.textContent = isStaff
-                ? "Staff Sign In"
-                : "Student Sign In";
-
-            accountMessage.textContent = isStaff
-                ? "Don't have a staff account?"
-                : "Don't have a student account?";
-
-            createAccount.textContent = isStaff
-                ? "Create Staff Account"
-                : "Create Student Account";
-
-            createAccount.href = isStaff
-                ? "staff-register.html"
-                : "student-register.html";
-
-            form.action = '/api/login';
-
-            roleButtons.forEach(function (button) {
-                const selected = button.dataset.role === selectedRole;
-
-                button.classList.toggle("active", selected);
-                button.setAttribute("aria-pressed", String(selected));
-            });
-
-            if (selectedRole !== currentRole) {
-                form.reset();
-            }
-
-            currentRole = selectedRole;
-        }
-
-        roleButtons.forEach(function (button) {
-            button.addEventListener("click", function () {
-                updateLogin(button.dataset.role);
-            });
-        });
-
-        updateLogin(currentRole);
-        form.addEventListener('submit', async function(event){
-            event.preventDefault();
-            try { const result=await api('/api/login',{email:document.getElementById('username').value,password:document.getElementById('password').value,kind:currentRole});location.href=result.next; }
-            catch(err){document.getElementById('login-message').textContent=err.message;}
-        });
-    </script>
+<body data-portal="{{ portal }}">
+ <main class="login-main">
+  <span class="brand">Attendance Management System</span>
+  <section class="card">
+   <nav class="login-tabs" aria-label="Login type">
+    <a href="/UI.html" class="{{ 'active' if portal=='student' else '' }}" {% if portal=='student' %}aria-current="page"{% endif %}>Student Login</a>
+    <a href="/staff-login.html" class="{{ 'active' if portal=='staff' else '' }}" {% if portal=='staff' %}aria-current="page"{% endif %}>Staff Login</a>
+   </nav>
+   <form id="login-form">
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" autocomplete="username" required>
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button class="full" id="sign-in">Sign In</button>
+   </form>
+   <p id="login-message" class="message" role="status"></p>
+  </section>
+ </main>
+ <script src="/static/common.js"></script>
+ <script src="/static/login.js"></script>
 </body>
 </html>
