@@ -81,6 +81,8 @@ CREATE TABLE `lecturer_course` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `semester` (
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
   `academic_year` varchar(9) NOT NULL,
   `study_year` tinyint NOT NULL,
   `semester_number` tinyint NOT NULL,

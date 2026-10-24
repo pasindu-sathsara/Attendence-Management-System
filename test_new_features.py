@@ -69,10 +69,10 @@ class NewFeatureTests(unittest.TestCase):
   self.assertEqual(response.status_code,403);self.assertFalse(calls)
  def test_medical_period_boundary(self):
   with patch.object(backend,'query',return_value={'end_date':date.today()}):
-   rules=backend.medical_rules({'course_code':'X','academic_year':'26/27'},date.today()-timedelta(days=14))
+   rules=backend.medical_rules({'course_code':'X','academic_year':'26/27','study_year':1,'semester_number':1},date.today()-timedelta(days=14))
    self.assertTrue(rules['normal']);self.assertFalse(rules['special'])
   with patch.object(backend,'query',return_value={'end_date':date.today()-timedelta(days=1)}):
-   rules=backend.medical_rules({'course_code':'X','academic_year':'26/27'},date.today()-timedelta(days=15))
+   rules=backend.medical_rules({'course_code':'X','academic_year':'26/27','study_year':1,'semester_number':1},date.today()-timedelta(days=15))
    self.assertFalse(rules['normal']);self.assertTrue(rules['special'])
  def test_student_cannot_view_another_module_history(self):
   self.signin('student')

@@ -43,8 +43,8 @@ class OptionsTests(unittest.TestCase):
  def test_hod_options_executes_queries_and_preserves_title_spacing(self):
   with patch.object(backend,'query',side_effect=self.query):r=self.client.get('/api/options')
   self.assertEqual(r.status_code,200)
-  self.assertEqual([l['name'] for l in r.json['lecturers']],['Mr Head','Mr Lecturer','Untitled'])
-  self.assertEqual(r.json['assignments'][0]['name'],'Mr Lecturer')
+  self.assertEqual([l['name'] for l in r.json['lecturers']],['Mr.Head','Mr.Lecturer','Untitled'])
+  self.assertEqual(r.json['assignments'][0]['name'],'Mr.Lecturer')
   self.assertEqual(r.json['courses'][0]['code'],'ICT 1305~26/27')
  def test_login_tabs_and_no_password_change(self):
   for path,active in [('/UI.html','Student Login'),('/staff-login.html','Staff Login')]:

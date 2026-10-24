@@ -161,7 +161,7 @@ class ImportGroupingTests(BackendTests):
   self.login_session('hod')
   modules=[{'code':'COM 1301','study':1,'sheet':'COM1301','students':[{'reg':'ASP/2024/001','name':'Student'}]}, {'code':'COM 2301','study':2,'sheet':'COM2301','students':[{'reg':'ASP/2024/001','name':'Student'}]}]
   with tempfile.TemporaryDirectory() as folder:
-   with patch.object(backend,'ROOT',Path(folder)),patch.object(backend,'query',side_effect=[{'email':'staff@example.com'},None]),patch.object(backend,'workbook_rows',return_value=modules):
+   with patch.object(backend,'ROOT',Path(folder)),patch.object(backend,'query',side_effect=[{'email':'staff@example.com'},[]]),patch.object(backend,'workbook_rows',return_value=modules):
     result=self.client.post('/api/import-preview',data={'semester':'26/27|1|1','file':(io.BytesIO(b'x'),'test.xlsx')},headers={'X-CSRF-Token':'test-token'})
     self.assertEqual(result.status_code,200);self.assertEqual(result.json['missing'],1)
     self.assertEqual(result.json['rows'][0]['study_year'],2)

@@ -77,3 +77,12 @@ CREATE TABLE IF NOT EXISTS attendance_audit (
  updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
  INDEX (course_code,academic_year,session_date,week_number)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+SET @change = IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='semester' AND column_name='start_date')=0, 'ALTER TABLE semester ADD COLUMN start_date DATE NULL', 'SELECT 1');
+PREPARE change_statement FROM @change;
+EXECUTE change_statement;
+DEALLOCATE PREPARE change_statement;
+SET @change = IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='semester' AND column_name='end_date')=0, 'ALTER TABLE semester ADD COLUMN end_date DATE NULL', 'SELECT 1');
+PREPARE change_statement FROM @change;
+EXECUTE change_statement;
+DEALLOCATE PREPARE change_statement;

@@ -1,5 +1,5 @@
 """Simple Flask attendance system using MySQL and Excel module rosters."""
-import json, secrets, re, io, hmac
+import json, secrets, re, io, hmac, zipfile
 from pathlib import Path
 from functools import wraps
 from datetime import date, timedelta
@@ -174,7 +174,7 @@ def login():
     roles=['student'] if portal=='student' else ['lecturer','ar']
     found=None
     for role in roles:
-        row=query("SELECT email,CONCAT_WS(' ',NULLIF(title,''),name) AS name,password_hash,must_change_password FROM "+TABLES[role]+' WHERE email=%s',(email,),True)
+        row=query("SELECT email,CASE WHEN NULLIF(title,'') IS NULL THEN name ELSE CONCAT(title,'.',name) END AS name,password_hash,must_change_password FROM "+TABLES[role]+' WHERE email=%s',(email,),True)
         if row:
             try: valid=check_password_hash(row['password_hash'],password)
             except (ValueError,TypeError): valid=False
@@ -217,8 +217,8 @@ def options():
     result={'semesters':list(sems.values()),'courses':[dict(code=c['course_code']+'~'+c['academic_year'],label=module_label(c['course_code'])+' · '+c['academic_year'],semester=semester_id(c)) for c in courses]}
     if session['role']=='hod':
         result['semesters']=[dict(id=semester_id(c),label=f"{c['academic_year']} · Year {c['study_year']} · Semester {c['semester_number']}") for c in query('SELECT * FROM semester ORDER BY academic_year,study_year,semester_number')]
-        result['lecturers']=query("SELECT email,type,CONCAT_WS(' ',NULLIF(title,''),name) AS name FROM lecturer ORDER BY name")
-        result['assignments']=query("SELECT lc.email,CONCAT_WS(' ',NULLIF(l.title,''),l.name) AS name,lc.course_code,lc.academic_year FROM lecturer_course lc JOIN lecturer l ON l.email=lc.email ORDER BY l.name,lc.course_code")
+        result['lecturers']=query("SELECT email,type,CASE WHEN NULLIF(title,'') IS NULL THEN name ELSE CONCAT(title,'.',name) END AS name FROM lecturer ORDER BY name")
+        result['assignments']=query("SELECT lc.email,CASE WHEN NULLIF(l.title,'') IS NULL THEN l.name ELSE CONCAT(l.title,'.',l.name) END AS name,lc.course_code,lc.academic_year FROM lecturer_course lc JOIN lecturer l ON l.email=lc.email ORDER BY l.name,lc.course_code")
     result['batches']=[r['batch'] for r in query('SELECT DISTINCT '+BATCH_SQL+' AS batch FROM student s WHERE '+BATCH_SQL+' IS NOT NULL ORDER BY batch')]
     return jsonify(result)
 
@@ -244,8 +244,11 @@ def attendance_status(row):
     return {'MC':'medical','SMC':'special'}.get(row['absent_reason'],'absent')
 
 def medical_rules(course,when):
-    end=query("SELECT COALESCE(o.teaching_end,DATE_ADD(MIN(cs.date),INTERVAL 14 WEEK)) AS end_date FROM course_offering o LEFT JOIN class_session cs ON cs.course_code=o.course_code AND cs.academic_year=o.academic_year WHERE o.course_code=%s AND o.academic_year=%s GROUP BY o.teaching_end",(course['course_code'],course['academic_year']),True)
-    return dict(normal=date.today()>=when and date.today()<=when+timedelta(days=14),special=bool(end and end['end_date'] and date.today()>end['end_date']))
+    end = query('SELECT end_date FROM semester WHERE academic_year=%s AND study_year=%s AND semester_number=%s',
+                (course['academic_year'], course['study_year'], course['semester_number']), True)
+    return dict(normal=when <= date.today() <= when + timedelta(days=14),
+                special=bool(end and end['end_date'] and date.today() > end['end_date']))
+
 
 @app.get('/api/attendance')
 @allowed('hod','lecturer','ar')
@@ -328,7 +331,7 @@ def own_attendance():
     rows=query(sql+"SELECT *,GREATEST(0,14-total) AS remaining,ROUND(100.0*(present+GREATEST(0,14-total))/14,2) AS maximum,CASE WHEN total>14 THEN 'Check session plan' WHEN (present+GREATEST(0,14-total))*100<=14*80 THEN 'Cannot reach threshold' WHEN total=0 THEN 'Not assessed' WHEN present*100>total*80 THEN 'Above threshold' ELSE 'Can recover' END AS prediction FROM scores ORDER BY academic_year DESC,study_year DESC,semester_number,course_code",(session['email'],))
     return jsonify(student=student,rows=rows)
 
-def report_scope():
+def report_scope(registrations=None):
     params=request.args; chosen=params.get('course',''); filters=[]; args=[]
     if chosen:
         course=course_access(chosen)
@@ -341,6 +344,9 @@ def report_scope():
     if params.get('registration'):
         if session['role'] not in ('hod','ar'): abort(403,'Individual scholarship reports are restricted to HOD and AR.')
         filters.append('s.reg_number=%s');args.append(params['registration'])
+    if registrations:
+        filters.append('s.reg_number IN (' + ','.join(['%s'] * len(registrations)) + ')')
+        args.extend(registrations)
     if not chosen and not params.get('academic_year'): abort(400,'Select an academic year.')
     dates=[];dateargs=[]
     for key,operator in [('start','>='),('end','<=')]:
@@ -354,11 +360,11 @@ def report_scope():
     args=tuple(dateargs+args)
     return sql,args,chosen
 
-def report_data():
-    params=request.args;sql,args,chosen=report_scope()
+def report_data(registrations=None):
+    params=request.args;sql,args,chosen=report_scope(registrations)
     if params.get('type')=='scholarship':
         if session['role'] not in ('hod','ar'): abort(403,'Scholarship reports are restricted to HOD and AR.')
-        rows=query(sql+"SELECT reg,name,batch,SUM(present) AS present,SUM(absent) AS absent,SUM(total) AS total,SUM(medical) AS medical,SUM(special) AS special,SUM(unmarked) AS unmarked,ROUND(100.0*SUM(present)/NULLIF(SUM(total),0),2) AS percentage FROM scores GROUP BY email,reg,name,batch ORDER BY reg",args)
+        rows=query(sql+"SELECT reg,name,batch,SUM(present) AS present,SUM(absent) AS absent,SUM(total) AS total,SUM(medical) AS medical,SUM(special) AS special,SUM(unmarked) AS unmarked,ROUND(100.0*SUM(present)/NULLIF(SUM(total),0),2) AS percentage,CASE WHEN SUM(total)=0 THEN 'Not assessed' WHEN SUM(present)*100>SUM(total)*80 THEN 'Eligible' ELSE 'Ineligible' END AS eligibility FROM scores GROUP BY email,reg,name,batch ORDER BY reg",args)
         kind='scholarship'
     elif chosen:
         rows=query(sql+'SELECT reg,name,present,absent,total,percentage,eligibility,medical,special,unmarked FROM scores ORDER BY reg',args)
@@ -405,7 +411,7 @@ def export_report():
     result=report_data();sql,args,chosen=report_scope();book=Workbook();sheet=book.active;sheet.title='Summary'
     columns=[('reg','Reg No'),('name','Name'),('present','Present'),('absent','Absent'),('total','Total Sessions'),('percentage','Attendance %'),('eligibility','Eligibility')]
     if result['kind']=='modules': columns=[('course_code','Module'),('academic_year','Academic Year'),('study_year','Study Year'),('semester_number','Semester'),('students','Students'),('total','Total Sessions'),('present','Present'),('absent','Absent'),('percentage','Average Attendance %')]
-    if result['kind']=='scholarship': columns=[('reg','Reg No'),('name','Name'),('batch','Batch'),('present','Present'),('absent','Absent'),('medical','MC'),('special','Special Medical'),('total','Student Sessions'),('percentage','Attendance %')]
+    if result['kind']=='scholarship': columns=[('reg','Reg No'),('name','Name'),('batch','Batch'),('present','Present'),('absent','Absent'),('medical','MC'),('special','Special Medical'),('total','Student Sessions'),('percentage','Attendance %'),('eligibility','Eligibility')]
     spreadsheet_table(sheet,columns,result['rows'])
     # All student-component details are selected in SQL with the same permissions and filters.
     details=query(sql+'SELECT * FROM scores ORDER BY course_code,academic_year,reg',args)
@@ -439,6 +445,66 @@ def export_report():
     out=io.BytesIO();book.save(out);out.seek(0)
     return send_file(out,as_attachment=True,download_name='attendance-report.xlsx',mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
+@app.post('/api/student-reports.zip')
+@allowed('hod', 'ar')
+def student_reports():
+    if request.args.get('type') != 'scholarship':
+        abort(400, 'Select Mahapola / Bursary Attendance.')
+    registrations = data().get('registrations')
+    if not isinstance(registrations, list) or not registrations:
+        abort(400, 'Select at least one student.')
+    if any(not isinstance(reg, str) or not reg or len(reg) > 30 for reg in registrations):
+        abort(400, 'Invalid student selection.')
+    registrations = sorted(set(registrations))
+    result = report_data(registrations)
+    if {r['reg'] for r in result['rows']} != set(registrations):
+        abort(400, 'Some selected students do not match the report filters. Generate the summary again.')
+    sql, args, chosen = report_scope(registrations)
+    details = query(sql + 'SELECT * FROM scores ORDER BY reg,academic_year,course_code', args)
+    marks = query(sql + '''SELECT t.reg,t.course_code,t.academic_year,r.date,r.week_number,
+        a.attendance_status,a.absent_reason FROM scores t JOIN recorded r
+        ON r.course_code=t.course_code AND r.academic_year=t.academic_year
+        LEFT JOIN student_class_session a ON a.email=t.email AND a.course_code=r.course_code
+        AND a.date=r.date AND a.week_number=r.week_number ORDER BY t.reg,t.course_code,r.date,r.week_number''', args)
+    by_student = {reg: [] for reg in registrations}
+    sessions_by_student = {reg: [] for reg in registrations}
+    for row in details:
+        row['course_code'] = module_label(row['course_code'])
+        by_student[row['reg']].append(row)
+    for row in marks:
+        row['course_code'] = module_label(row['course_code'])
+        row['status'] = 'Not marked' if row['attendance_status'] is None else {'present':'Present','absent':'Absent','medical':'Medical (MC)','special':'Special Medical (SMC)'}[attendance_status(row)]
+        sessions_by_student[row['reg']].append(row)
+    summary_columns = [('reg','Reg No'),('name','Name'),('batch','Batch'),('present','Present'),
+        ('absent','Absent'),('medical','MC'),('special','Special Medical'),('total','Student Sessions'),
+        ('percentage','Attendance %'),('eligibility','Eligibility')]
+    module_columns = [('course_code','Module'),('academic_year','Academic Year'),('present','Present'),
+        ('absent','Absent'),('medical','MC'),('special','Special Medical'),('total','Total Sessions'),
+        ('percentage','Attendance %'),('eligibility','Eligibility')]
+    output = io.BytesIO()
+    with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:
+        for number, student in enumerate(result['rows'], 1):
+            book = Workbook()
+            book.active.title = 'Student Summary'
+            spreadsheet_table(book.active, summary_columns, [student])
+            spreadsheet_table(book.create_sheet('Modules'), module_columns, by_student[student['reg']])
+            spreadsheet_table(book.create_sheet('Session Attendance'),
+                [('course_code','Module'),('academic_year','Academic Year'),('date','Date'),
+                 ('week_number','Week'),('status','Attendance')], sessions_by_student[student['reg']])
+            filters = [dict(filter=key, value=request.args.get(key) or 'All') for key in
+                ('academic_year','study_year','semester_number','batch','course','registration','start','end')]
+            filters += [dict(filter='Eligibility', value='Attendance strictly above 80%; no sessions: Not assessed.'),
+                        dict(filter='Medical', value='MC and Special Medical remain included in Absent.'),
+                        dict(filter='Unmarked records', value=student['unmarked'])]
+            spreadsheet_table(book.create_sheet('Report details'), [('filter','Filter'),('value','Value')], filters)
+            file = io.BytesIO()
+            book.save(file)
+            filename = str(number) + '-' + re.sub(r'[^A-Za-z0-9_-]', '_', student['reg']) + '.xlsx'
+            archive.writestr(filename, file.getvalue())
+    output.seek(0)
+    return send_file(output, as_attachment=True, download_name='student-attendance-reports.zip', mimetype='application/zip')
+
+
 @app.get('/api/report-view')
 @allowed('hod','lecturer','ar')
 def report_view():
@@ -461,7 +527,17 @@ def add_semester():
     except (TypeError,ValueError): abort(400,'Enter valid year and semester numbers.')
     a=text(d.get('academic_year'),9)
     if not re.fullmatch(r'\d{2}/\d{2}',a) or y not in range(1,5) or n not in (1,2): abort(400,'Use academic year YY/YY, study year 1–4 and semester 1 or 2.')
-    execute('INSERT INTO semester VALUES (%s,%s,%s)',(a,y,n));db().commit();return jsonify(ok=True)
+    try:
+        start = date.fromisoformat(d.get('start_date', ''))
+        end = date.fromisoformat(d.get('end_date', ''))
+    except (ValueError, TypeError):
+        abort(400, 'Choose a semester start date and end date.')
+    if end < start:
+        abort(400, 'Semester end date must be on or after the start date.')
+    execute('INSERT INTO semester (academic_year,study_year,semester_number,start_date,end_date) VALUES (%s,%s,%s,%s,%s) ON DUPLICATE KEY UPDATE start_date=VALUES(start_date),end_date=VALUES(end_date)',
+            (a, y, n, start, end))
+    db().commit()
+    return jsonify(ok=True)
 
 @app.post('/api/courses')
 @allowed('hod')
@@ -496,7 +572,7 @@ def ensure_course(code,key):
     existing=query('SELECT * FROM course WHERE course_code=%s',(code,),True)
     if existing and (existing['study_year']!=study or existing['semester_number']!=semester):
         abort(400,'Module '+code+' already has a different study year or semester.')
-    execute('INSERT IGNORE INTO semester VALUES (%s,%s,%s)',key)
+    execute('INSERT IGNORE INTO semester (academic_year,study_year,semester_number) VALUES (%s,%s,%s)',key)
     execute('INSERT IGNORE INTO course (course_code,study_year,semester_number) VALUES (%s,%s,%s)',(code,study,semester))
     execute('INSERT IGNORE INTO course_offering (course_code,academic_year) VALUES (%s,%s)',(code,year))
 
@@ -556,7 +632,7 @@ def workbook_rows(file):
     except HTTPException: raise
     except Exception: abort(400,'Unable to read the attendance workbook.')
 
-def account_details(file):
+def account_details(file, existing=None, wanted=None):
     import csv
     if not file: return {}
     result={};emails=set()
@@ -588,7 +664,10 @@ def account_details(file):
             if reg in result: abort(400,prefix+'duplicate Reg_no '+reg)
             if email in emails: abort(400,prefix+'duplicate Email '+email)
             emails.add(email)
-            result[reg]=dict(email=email,password_hash=generate_password_hash(nic))
+            password_hash = ''
+            if (not existing or reg not in existing) and (wanted is None or reg in wanted):
+                password_hash = generate_password_hash(nic)
+            result[reg] = dict(email=email, password_hash=password_hash)
         return result
     except HTTPException: raise
     except Exception: abort(400,'Unable to read account details. Use a CSV or XLSX file with Reg_no, Email and NIC headings.')
@@ -600,14 +679,21 @@ def import_preview():
     if old: (ROOT/'.imports'/old).unlink(missing_ok=True)
     key=semester_key(request.form.get('semester'))
     if not re.fullmatch(r'\d{2}/\d{2}',key[0]) or key[2] not in (1,2): abort(400,'Choose an academic year and semester.')
-    modules=workbook_rows(request.files.get('file'));accounts=account_details(request.files.get('accounts'))
+    modules = workbook_rows(request.files.get('file'))
+    registrations = sorted({r['reg'] for m in modules for r in m['students']})
+    existing = {}
+    for offset in range(0, len(registrations), 500):
+        group = registrations[offset:offset + 500]
+        saved = query('SELECT reg_number,email FROM student WHERE reg_number IN (' + ','.join(['%s'] * len(group)) + ')', tuple(group))
+        existing.update({r['reg_number']: r for r in saved})
+    accounts = account_details(request.files.get('accounts'), existing, set(registrations))
     rows={};members=set()
     for module in modules:
         if module['study'] not in range(1,5): abort(400,'Invalid study year in '+module['sheet'])
         for student in module['students']:
             reg=student['reg']
             if reg not in rows:
-                old=query('SELECT email FROM student WHERE reg_number=%s',(reg,),True)
+                old=existing.get(reg)
                 account=accounts.get(reg)
                 if old and account and old['email'].lower()!=account['email']: abort(400,'Email differs from the existing account for '+reg)
                 rows[reg]=dict(reg=reg,name=student['name'],email=old['email'] if old else account['email'] if account else '',password_hash=account['password_hash'] if account and not old else '',modules=[])
@@ -631,6 +717,9 @@ def page_result(sql,args,order):
     count=query('SELECT COUNT(*) AS n FROM ('+sql+') AS results',tuple(args),True)['n']
     pages=max(1,(count+9)//10);page=min(page,pages)
     rows=query(sql+' ORDER BY '+order+' LIMIT 10 OFFSET %s',tuple(args)+((page-1)*10,))
+    for row in rows:
+        for key, value in row.items():
+            if isinstance(value, date): row[key] = value.isoformat()
     return jsonify(rows=rows,total=count,page=page,pages=pages)
 
 @app.get('/api/students')
@@ -656,7 +745,7 @@ def manage_list():
     kind=request.args.get('kind'); search='%'+request.args.get('search','')+'%'
     queries={
       'modules':("SELECT c.course_code,o.academic_year,c.study_year,c.semester_number FROM course c JOIN course_offering o ON o.course_code=c.course_code WHERE c.course_code LIKE %s",'academic_year DESC,study_year,course_code'),
-      'assignments':("SELECT CONCAT_WS(' ',NULLIF(l.title,''),l.name) AS name,lc.course_code,lc.academic_year FROM lecturer_course lc JOIN lecturer l ON l.email=lc.email WHERE CONCAT(l.name,' ',lc.course_code) LIKE %s",'name,course_code'),
+      'assignments':("SELECT CASE WHEN NULLIF(l.title,'') IS NULL THEN l.name ELSE CONCAT(l.title,'.',l.name) END AS name,lc.course_code,lc.academic_year FROM lecturer_course lc JOIN lecturer l ON l.email=lc.email WHERE CONCAT(l.name,' ',lc.course_code) LIKE %s",'name,course_code'),
       'staff':("SELECT * FROM (SELECT l.email,l.name,l.title,COALESCE(l.type,'Lecturer') AS staff_type,CASE WHEN h.email IS NULL THEN 'lecturer' ELSE 'hod' END AS role FROM lecturer l LEFT JOIN hod h ON h.email=l.email UNION ALL SELECT email,name,title,'AR' AS staff_type,'ar' AS role FROM ar_user) AS staff WHERE name LIKE %s",'name'),
       'semesters':("SELECT * FROM semester WHERE academic_year LIKE %s",'academic_year DESC,study_year,semester_number')}
     if kind not in queries: abort(400,'Choose a valid tab.')
@@ -691,7 +780,7 @@ def account_template():
     if not token or not path.is_file(): abort(400,'Preview a workbook first.')
     out=io.StringIO();writer=csv.writer(out);writer.writerow(['Reg_no','Email','NIC'])
     for r in json.loads(path.read_text())['rows']:
-        if not r['email']: writer.writerow([r['reg'],'',''])
+        writer.writerow([r['reg'],'',''])
     return Response(out.getvalue(),mimetype='text/csv',headers={'Content-Disposition':'attachment; filename=account-details.csv'})
 
 @app.post('/api/import-confirm')
@@ -730,7 +819,7 @@ def coordinator():
 @app.get('/api/coordinators')
 @allowed('hod')
 def coordinator_list():
-    return jsonify(rows=query("SELECT CONCAT_WS(' ',NULLIF(l.title,''),l.name) AS name,v.name AS visiting,m.course_code,m.academic_year FROM module_coordinator m JOIN lecturer l ON l.email=m.email JOIN lecturer v ON v.email=m.visiting_email ORDER BY m.academic_year,m.course_code"))
+    return jsonify(rows=query("SELECT CASE WHEN NULLIF(l.title,'') IS NULL THEN l.name ELSE CONCAT(l.title,'.',l.name) END AS name,CASE WHEN NULLIF(v.title,'') IS NULL THEN v.name ELSE CONCAT(v.title,'.',v.name) END AS visiting,m.course_code,m.academic_year FROM module_coordinator m JOIN lecturer l ON l.email=m.email JOIN lecturer v ON v.email=m.visiting_email ORDER BY m.academic_year,m.course_code"))
 
 @app.post('/api/staff-type')
 @allowed('hod')
@@ -742,17 +831,6 @@ def staff_type():
     if query('SELECT email FROM module_coordinator WHERE email=%s OR visiting_email=%s',(email,email),True): abort(400,'Remove coordinator assignments before changing this staff type.')
     if kind=='Demonstrator' and query("SELECT email FROM lecturer_course WHERE email=%s AND course_code NOT LIKE '%%(P)'",(email,),True): abort(400,'This account has theory assignments. Keep it as a lecturer.')
     execute('UPDATE lecturer SET type=%s WHERE email=%s',(kind,email));db().commit();return jsonify(ok=True)
-
-@app.post('/api/teaching-end')
-@allowed('hod')
-def teaching_end():
-    d=data();course=course_access(d.get('course'))
-    try: end=date.fromisoformat(d.get('date',''))
-    except ValueError: abort(400,'Choose the end date of the 14-week teaching period.')
-    start=query('SELECT MIN(date) AS start FROM class_session WHERE course_code=%s AND academic_year=%s',(course['course_code'],course['academic_year']),True)
-    if start and start['start'] and end<start['start']+timedelta(weeks=14): abort(400,'The teaching end must be at least 14 weeks after the first session.')
-    execute('UPDATE course_offering SET teaching_end=%s WHERE course_code=%s AND academic_year=%s',(end,course['course_code'],course['academic_year']))
-    db().commit();return jsonify(ok=True)
 
 @app.get('/api/my-sessions')
 @allowed('student')
