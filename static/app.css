@@ -7,3 +7,21 @@
 .login-tabs a+a{border-left:1px solid #dce3ee}
 .login-tabs a.active{color:#1769df;background:#edf4ff;border-bottom-color:#1769df}
 .login-tabs a:hover{background:#edf4ff}
+
+.auth-page{min-height:100vh;background:linear-gradient(#112d4c99,#112d4cbb),url('/static/images/campus.jpg') center/cover fixed;display:flow-root}
+.auth-page .login-main{max-width:540px;margin:5vh auto}.auth-page .card{box-shadow:0 14px 45px #10273e30}
+.university-heading{text-align:center;color:#183659;margin-bottom:24px}.university-heading img{height:90px;width:auto;object-fit:contain}.university-heading h1{font-size:23px;line-height:1.3;margin-top:10px}.university-heading p{font-size:14px;line-height:1.6;margin:8px 0}
+.password-field{position:relative;margin-bottom:20px}.password-field input{padding-right:55px;margin-bottom:0}.eye{position:absolute;right:4px;top:4px;background:white;border:0;color:#607086;padding:7px 12px;font-size:19px}
+.warning{padding:18px;border:1px solid #ebc56b;border-radius:8px;background:#fff8e7;color:#87571c;line-height:1.7;margin-top:20px}.live{font-size:14px;color:#258457}.live:before{content:'● ';color:#2cab70}.selected-row{background:#edf4ff}.click-row{cursor:pointer}.status-buttons button.selected[data-status=special]{background:#ede3ff;color:#653891}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:700px){.split{grid-template-columns:1fr}}
+.auth-page .login-main > .university-heading {
+    color: #ffffff;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.6);
+}
+body[data-portal] .university-heading,
+body[data-portal] .university-heading h1,
+body[data-portal] .university-heading p,
+body[data-portal] .university-heading strong {
+    color: #ffffff !important;
+    text-shadow: 0 2px 5px #000000;
+}

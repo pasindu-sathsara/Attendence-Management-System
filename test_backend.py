@@ -6,6 +6,7 @@ class BackendTests(unittest.TestCase):
  def setUp(self):
   backend.app.config['TESTING']=True
   self.client=backend.app.test_client()
+  rules=patch.object(backend,'medical_rules',return_value={'normal':True,'special':False});rules.start();self.addCleanup(rules.stop)
  def login_session(self,role='lecturer'):
   with self.client.session_transaction() as s:s.update(role=role,email='staff@example.com',csrf='test-token',name='Staff')
  def post(self,path,payload):return self.client.post(path,json=payload,headers={'X-CSRF-Token':'test-token'})
@@ -48,7 +49,7 @@ class BackendTests(unittest.TestCase):
   payload,rows=self.attendance_request()
   with patch.object(backend,'query',side_effect=[{'email':'staff@example.com'},rows]),patch.object(backend,'selected_session',return_value=({'course_code':'1201','academic_year':'26/27'},'2026-10-12',1)),patch.object(backend,'roster',return_value=[{'reg_number':'R1','email':'s@example.com'}]),patch.object(backend,'execute') as execute,patch.object(backend,'db') as db:
    self.assertEqual(self.post('/api/attendance',payload).status_code,200)
-   self.assertEqual(execute.call_args.args[1][:2],(0,'MC'));db.return_value.commit.assert_called_once()
+   self.assertEqual(execute.call_args_list[0].args[1][-2:],(0,'MC'));db.return_value.commit.assert_called_once()
  def test_incomplete_class_rejected(self):
   payload,rows=self.attendance_request();payload['statuses']={}
   with patch.object(backend,'query',return_value={'email':'staff@example.com'}),patch.object(backend,'selected_session',return_value=({'course_code':'1201','academic_year':'26/27'},'2026-10-12',1)),patch.object(backend,'roster',return_value=[{'reg_number':'R1','email':'s@example.com'}]):
@@ -76,7 +77,7 @@ class UpdatedFlowTests(BackendTests):
    with patch.object(backend,'query',side_effect=[course,None]) as query:
     from werkzeug.exceptions import Forbidden
     with self.assertRaises(Forbidden):backend.course_access('ICT 1305~26/27')
-    self.assertEqual(query.call_args.args[1],('staff@example.com','ICT 1305','26/27'))
+    self.assertEqual(query.call_args.args[1],('staff@example.com','ICT 1305','26/27')*2)
  def test_roster_uses_exact_module_enrolment(self):
   with patch.object(backend,'query',return_value=[]) as query:
    backend.roster({'course_code':'ICT 1305','academic_year':'26/27'})
@@ -99,7 +100,7 @@ class UpdatedFlowTests(BackendTests):
    modules=backend.workbook_rows(FileStorage(stream=stream,filename='attendance.xlsx'))
   self.assertEqual(len(modules),45)
   self.assertEqual(modules[0]['code'],'ICT 1305')
-  self.assertEqual(modules[1]['code'],'ICT 1305')
+  self.assertEqual(modules[1]['code'],'ICT 1305(P)')
   self.assertGreater(len(modules[0]['students']),0)
   recovered=[r for m in modules if m['code']=='ICT 1407' for r in m['students'] if r['reg']=='ICT/2024/123']
   self.assertTrue(recovered);self.assertTrue(recovered[0]['name'])
@@ -128,9 +129,9 @@ class UpdatedFlowTests(BackendTests):
     self.assertFalse((root/'.imports'/'token').exists())
  def test_attendance_query_filters_module(self):
   self.login_session()
-  with patch.object(backend,'query',side_effect=[{'email':'staff@example.com'},[]]) as query,patch.object(backend,'selected_session',return_value=({'course_code':'ICT 1305'},'2026-10-12',1)),patch.object(backend,'roster',return_value=[]):
+  with patch.object(backend,'query',side_effect=[{'email':'staff@example.com'},[],{}]) as query,patch.object(backend,'selected_session',return_value=({'course_code':'ICT 1305'},'2026-10-12',1)),patch.object(backend,'roster',return_value=[]):
    self.assertEqual(self.client.get('/api/attendance').status_code,200)
-   self.assertEqual(query.call_args.args[1],('ICT 1305','2026-10-12',1))
+   self.assertEqual(query.call_args_list[1].args[1],('ICT 1305','2026-10-12',1))
 
 class ImportGroupingTests(BackendTests):
  def test_programme_labels(self):

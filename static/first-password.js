@@ -1,0 +1,1 @@
+$('first-password-form').onsubmit=async e=>{e.preventDefault();const button=e.target.querySelector('button[type="submit"]')||e.target.querySelector('.full');button.disabled=true;try{const r=await api('/api/first-password',formObject(e.target));location.href=r.next;}catch(err){message('password-message',err.message,true);button.disabled=false;}};

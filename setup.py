@@ -50,7 +50,7 @@ else:
             if '@' not in email or len(password)<8 or password!=getpass.getpass('Confirm password: '):
                 raise ValueError('Valid email and matching passwords required.')
             if action=='password':
-                cursor.execute('UPDATE '+tables[role]+' SET password_hash=%s WHERE email=%s',(generate_password_hash(password),email))
+                cursor.execute('UPDATE '+tables[role]+' SET password_hash=%s,must_change_password=1 WHERE email=%s',(generate_password_hash(password),email))
                 if not cursor.rowcount: raise ValueError('Account not found.')
             else:
                 name=input('Full name: ').strip()
@@ -58,9 +58,10 @@ else:
                 for table in ('student','lecturer','ar_user'):
                     cursor.execute('SELECT email FROM '+table+' WHERE email=%s',(email,))
                     if cursor.fetchone(): raise ValueError('Email is already used.')
-                title=input('Title (Mr/Mrs/Ms/Ven): ').strip()
-                if title not in ('Mr','Mrs','Ms','Ven'): raise ValueError('Choose Mr, Mrs, Ms or Ven.')
+                title=input('Title (Mr/Mrs/Ms): ').strip()
+                if title not in ('Mr','Mrs','Ms'): raise ValueError('Choose Mr, Mrs or Ms.')
                 cursor.execute('INSERT INTO '+tables[role]+' (email,name,title,password_hash) VALUES (%s,%s,%s,%s)',(email,name,title,generate_password_hash(password)))
+                if tables[role]=='lecturer': cursor.execute("UPDATE lecturer SET type='Lecturer' WHERE email=%s",(email,))
                 if role=='hod': cursor.execute('INSERT INTO hod (email) VALUES (%s)',(email,))
             connection.commit()
             print('Account saved.')

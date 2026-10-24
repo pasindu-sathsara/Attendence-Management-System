@@ -7,9 +7,9 @@
  <title>{{ portal|capitalize }} Login</title>
  <link rel="stylesheet" href="/static/app.css">
 </head>
-<body data-portal="{{ portal }}">
+<body class="auth-page" data-portal="{{ portal }}">
  <main class="login-main">
-  <span class="brand">Attendance Management System</span>
+  <div class="university-heading"><img src="/static/images/crest.jpg" alt="Rajarata University crest"><h1>Rajarata University of Sri Lanka</h1><p>Faculty of Applied Sciences<br>Department of Computing</p><strong>Attendance Management System</strong></div>
   <section class="card">
    <nav class="login-tabs" aria-label="Login type">
     <a href="/UI.html" class="{{ 'active' if portal=='student' else '' }}" {% if portal=='student' %}aria-current="page"{% endif %}>Student Login</a>
@@ -19,7 +19,7 @@
     <label for="email">Email</label>
     <input id="email" name="email" type="email" autocomplete="username" required>
     <label for="password">Password</label>
-    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <div class="password-field"><input id="password" name="password" type="password" autocomplete="current-password" required><button type="button" class="eye" data-eye="password" aria-label="Show password">&#128065;</button></div>
     <button class="full" id="sign-in">Sign In</button>
    </form>
    <p id="login-message" class="message" role="status"></p>

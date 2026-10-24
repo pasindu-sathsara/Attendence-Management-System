@@ -4,15 +4,17 @@ USE student_attendance_system;
 SET FOREIGN_KEY_CHECKS=0;
 
 CREATE TABLE `ar_user` (
+  `must_change_password` tinyint NOT NULL DEFAULT 1,
   `email` varchar(255) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `name` varchar(100) NOT NULL,
   `title` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`email`),
-  CONSTRAINT `chk_ar_title` CHECK ((`title` in (_utf8mb3'Mr',_utf8mb3'Mrs',_utf8mb3'Ms',_utf8mb3'Ven')))
+  CONSTRAINT `chk_ar_title` CHECK ((`title` in (_utf8mb3'Mr',_utf8mb3'Mrs',_utf8mb3'Ms')))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `class_session` (
+  `updated_by` varchar(255) DEFAULT NULL,
   `date` date NOT NULL,
   `week_number` tinyint NOT NULL,
   `course_code` varchar(20) NOT NULL,
@@ -41,6 +43,7 @@ CREATE TABLE `course` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `course_offering` (
+  `teaching_end` date DEFAULT NULL,
   `course_code` varchar(20) NOT NULL,
   `academic_year` varchar(9) NOT NULL,
   PRIMARY KEY (`course_code`,`academic_year`),
@@ -55,13 +58,14 @@ CREATE TABLE `hod` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `lecturer` (
+  `must_change_password` tinyint NOT NULL DEFAULT 1,
   `email` varchar(255) NOT NULL,
   `type` varchar(50) DEFAULT NULL,
   `password_hash` varchar(255) NOT NULL,
   `name` varchar(100) NOT NULL,
   `title` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`email`),
-  CONSTRAINT `chk_lecturer_type` CHECK ((`type` in (_utf8mb3'Lecturer',_utf8mb3'Temporary Lecturer',_utf8mb3'Demonstrator',_utf8mb3'Coordinator',_utf8mb3'Senior Lecturer',_utf8mb3'Assistant Lecturer')))
+  CONSTRAINT `chk_lecturer_type` CHECK ((`type` in (_utf8mb3'Lecturer',_utf8mb3'Visiting Lecturer',_utf8mb3'Temporary Lecturer',_utf8mb3'Demonstrator',_utf8mb3'Coordinator',_utf8mb3'Senior Lecturer',_utf8mb3'Assistant Lecturer')))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `lecturer_course` (
@@ -87,13 +91,12 @@ CREATE TABLE `semester` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `student` (
+  `must_change_password` tinyint NOT NULL DEFAULT 1,
   `email` varchar(255) NOT NULL,
   `reg_number` varchar(30) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `name` varchar(100) NOT NULL,
   `title` varchar(50) DEFAULT NULL,
-  `batch` varchar(5) DEFAULT NULL,
-  CONSTRAINT `chk_student_batch` CHECK (batch IS NULL OR batch REGEXP '^[0-9]{2}/[0-9]{2}$'),
   PRIMARY KEY (`email`),
   UNIQUE KEY `reg_number` (`reg_number`),
   CONSTRAINT `chk_student_reg_not_blank` CHECK ((char_length(trim(`reg_number`)) > 0))
@@ -112,7 +115,7 @@ CREATE TABLE `student_class_session` (
   KEY `fk_attendance_class_session` (`course_code`,`date`,`week_number`),
   CONSTRAINT `fk_attendance_class_session` FOREIGN KEY (`course_code`, `date`, `week_number`) REFERENCES `class_session` (`course_code`, `date`, `week_number`),
   CONSTRAINT `student_class_session_ibfk_1` FOREIGN KEY (`email`) REFERENCES `student` (`email`),
-  CONSTRAINT `chk_absent_reason` CHECK ((`absent_reason` in (_utf8mb4'MC',_utf8mb4'SRC',_utf8mb4'EXCUSE'))),
+  CONSTRAINT `chk_absent_reason` CHECK ((`absent_reason` in (_utf8mb4'MC',_utf8mb4'SMC',_utf8mb4'SRC',_utf8mb4'EXCUSE'))),
   CONSTRAINT `chk_attendance_status` CHECK ((`attendance_status` in (0,1)))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -134,5 +137,28 @@ CREATE TABLE IF NOT EXISTS student_course (
  PRIMARY KEY (email,course_code,academic_year),
  CONSTRAINT fk_student_course_student FOREIGN KEY (email) REFERENCES student(email),
  CONSTRAINT fk_student_course_offering FOREIGN KEY (course_code,academic_year) REFERENCES course_offering(course_code,academic_year)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE IF NOT EXISTS module_coordinator (
+ email varchar(255) NOT NULL,
+ visiting_email varchar(255) NOT NULL,
+ course_code varchar(20) NOT NULL,
+ academic_year varchar(9) NOT NULL,
+ PRIMARY KEY (visiting_email,course_code,academic_year),
+ FOREIGN KEY (email) REFERENCES lecturer(email),
+ FOREIGN KEY (visiting_email,course_code,academic_year) REFERENCES lecturer_course(email,course_code,academic_year)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE IF NOT EXISTS attendance_audit (
+ id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ student_email varchar(255) NOT NULL,
+ course_code varchar(20) NOT NULL,
+ academic_year varchar(9) NOT NULL,
+ session_date DATE NOT NULL,
+ week_number TINYINT NOT NULL,
+ old_status varchar(20) NOT NULL,
+ new_status varchar(20) NOT NULL,
+ updated_by varchar(255) NOT NULL,
+ actor_email varchar(255) NOT NULL,
+ updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ INDEX (course_code,academic_year,session_date,week_number)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 SET FOREIGN_KEY_CHECKS=1;

@@ -16,3 +16,6 @@ function pager(id,result,load){const el=$(id);el.replaceChildren();const span=do
 function debounce(fn){let timer;return (...args)=>{clearTimeout(timer);timer=setTimeout(()=>fn(...args),250);};}
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.close).close());
 if($('logout'))$('logout').onclick=async()=>{try{const role=document.body.dataset.role;await api('/api/logout',{});location.href=role==='student'?'/UI.html':'/staff-login.html';}catch(e){alert(e.message);}};
+
+document.querySelectorAll('[data-eye]').forEach(button=>button.onclick=()=>{const input=$(button.dataset.eye);input.type=input.type==='password'?'text':'password';button.setAttribute('aria-label',input.type==='password'?'Show password':'Hide password');button.setAttribute('aria-pressed',input.type==='text');});
+function moduleLabel(code){return /\([TP]\)$/.test(code)?code:code+'(T)';}
