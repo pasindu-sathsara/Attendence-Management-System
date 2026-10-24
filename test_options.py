@@ -46,6 +46,17 @@ class OptionsTests(unittest.TestCase):
   self.assertEqual([l['name'] for l in r.json['lecturers']],['Mr.Head','Mr.Lecturer','Untitled'])
   self.assertEqual(r.json['assignments'][0]['name'],'Mr.Lecturer')
   self.assertEqual(r.json['courses'][0]['code'],'ICT 1305~26/27')
+ def test_hod_dashboard_only_lists_own_assignments_but_management_lists_all(self):
+  self.conn.execute("INSERT INTO course VALUES ('ICT 1305(P)',1,1)")
+  self.conn.execute("INSERT INTO course_offering VALUES ('ICT 1305(P)','26/27')")
+  self.conn.execute("INSERT INTO lecturer_course VALUES ('head@example.com','ICT 1305','26/27')")
+  with patch.object(backend,'query',side_effect=self.query):
+   dashboard=self.client.get('/api/options?attendance=1')
+   management=self.client.get('/api/options')
+  self.assertEqual([row['code'] for row in dashboard.json['courses']],['ICT 1305~26/27'])
+  self.assertEqual(len(management.json['courses']),2)
+  self.assertIn('lecturers',management.json)
+
  def test_login_tabs_and_no_password_change(self):
   for path,active in [('/UI.html','Student Login'),('/staff-login.html','Staff Login')]:
    r=self.client.get(path)

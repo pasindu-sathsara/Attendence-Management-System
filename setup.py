@@ -36,7 +36,7 @@ else:
                     cursor.execute(statement)
                     if cursor.with_rows: cursor.fetchall()
             connection.commit()
-            print('Database upgraded. Existing records preserved.')
+            print('Database upgraded.')
         elif action=='check':
             cursor.execute('SHOW TABLES')
             print('\n'.join(row[0] for row in cursor.fetchall()))

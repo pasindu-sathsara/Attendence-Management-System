@@ -54,35 +54,36 @@ CREATE TABLE IF NOT EXISTS student_course (
  CONSTRAINT fk_student_course_offering FOREIGN KEY (course_code,academic_year) REFERENCES course_offering(course_code,academic_year)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS module_coordinator (
- email varchar(255) NOT NULL,
- visiting_email varchar(255) NOT NULL,
- course_code varchar(20) NOT NULL,
- academic_year varchar(9) NOT NULL,
- PRIMARY KEY (visiting_email,course_code,academic_year),
- FOREIGN KEY (email) REFERENCES lecturer(email),
- FOREIGN KEY (visiting_email,course_code,academic_year) REFERENCES lecturer_course(email,course_code,academic_year)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-CREATE TABLE IF NOT EXISTS attendance_audit (
- id BIGINT AUTO_INCREMENT PRIMARY KEY,
- student_email varchar(255) NOT NULL,
- course_code varchar(20) NOT NULL,
- academic_year varchar(9) NOT NULL,
- session_date DATE NOT NULL,
- week_number TINYINT NOT NULL,
- old_status varchar(20) NOT NULL,
- new_status varchar(20) NOT NULL,
- updated_by varchar(255) NOT NULL,
- actor_email varchar(255) NOT NULL,
- updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
- INDEX (course_code,academic_year,session_date,week_number)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 SET @change = IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='semester' AND column_name='start_date')=0, 'ALTER TABLE semester ADD COLUMN start_date DATE NULL', 'SELECT 1');
 PREPARE change_statement FROM @change;
 EXECUTE change_statement;
 DEALLOCATE PREPARE change_statement;
 SET @change = IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='semester' AND column_name='end_date')=0, 'ALTER TABLE semester ADD COLUMN end_date DATE NULL', 'SELECT 1');
+PREPARE change_statement FROM @change;
+EXECUTE change_statement;
+DEALLOCATE PREPARE change_statement;
+
+DROP TABLE IF EXISTS module_coordinator;
+DROP TABLE IF EXISTS attendance_audit;
+
+SET @change = IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='student_class_session' AND column_name='medical_filename')=0, 'ALTER TABLE student_class_session ADD COLUMN medical_filename VARCHAR(100) NULL', 'SELECT 1');
+PREPARE change_statement FROM @change;
+EXECUTE change_statement;
+DEALLOCATE PREPARE change_statement;
+SET @change = IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='student_class_session' AND column_name='medical_mimetype')=0, 'ALTER TABLE student_class_session ADD COLUMN medical_mimetype VARCHAR(50) NULL', 'SELECT 1');
+PREPARE change_statement FROM @change;
+EXECUTE change_statement;
+DEALLOCATE PREPARE change_statement;
+SET @change = IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='student_class_session' AND column_name='medical_kind')=0, 'ALTER TABLE student_class_session ADD COLUMN medical_kind VARCHAR(10) NULL', 'SELECT 1');
+PREPARE change_statement FROM @change;
+EXECUTE change_statement;
+DEALLOCATE PREPARE change_statement;
+SET @change = IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='student_class_session' AND column_name='medical_status')=0, 'ALTER TABLE student_class_session ADD COLUMN medical_status VARCHAR(10) NULL', 'SELECT 1');
+PREPARE change_statement FROM @change;
+EXECUTE change_statement;
+DEALLOCATE PREPARE change_statement;
+SET @change = IF((SELECT COUNT(*) FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='student_class_session' AND column_name='medical_submitted_at')=0, 'ALTER TABLE student_class_session ADD COLUMN medical_submitted_at DATETIME NULL', 'SELECT 1');
 PREPARE change_statement FROM @change;
 EXECUTE change_statement;
 DEALLOCATE PREPARE change_statement;

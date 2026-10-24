@@ -112,6 +112,11 @@ CREATE TABLE `student_class_session` (
   `attendance_status` tinyint NOT NULL,
   `absent_reason` varchar(255) DEFAULT NULL,
   `medical_report` longblob,
+  `medical_filename` varchar(100) DEFAULT NULL,
+  `medical_mimetype` varchar(50) DEFAULT NULL,
+  `medical_kind` varchar(10) DEFAULT NULL,
+  `medical_status` varchar(10) DEFAULT NULL,
+  `medical_submitted_at` datetime DEFAULT NULL,
   PRIMARY KEY (`email`,`course_code`,`date`,`week_number`),
   KEY `date` (`date`,`week_number`),
   KEY `fk_attendance_class_session` (`course_code`,`date`,`week_number`),
@@ -139,28 +144,5 @@ CREATE TABLE IF NOT EXISTS student_course (
  PRIMARY KEY (email,course_code,academic_year),
  CONSTRAINT fk_student_course_student FOREIGN KEY (email) REFERENCES student(email),
  CONSTRAINT fk_student_course_offering FOREIGN KEY (course_code,academic_year) REFERENCES course_offering(course_code,academic_year)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-CREATE TABLE IF NOT EXISTS module_coordinator (
- email varchar(255) NOT NULL,
- visiting_email varchar(255) NOT NULL,
- course_code varchar(20) NOT NULL,
- academic_year varchar(9) NOT NULL,
- PRIMARY KEY (visiting_email,course_code,academic_year),
- FOREIGN KEY (email) REFERENCES lecturer(email),
- FOREIGN KEY (visiting_email,course_code,academic_year) REFERENCES lecturer_course(email,course_code,academic_year)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-CREATE TABLE IF NOT EXISTS attendance_audit (
- id BIGINT AUTO_INCREMENT PRIMARY KEY,
- student_email varchar(255) NOT NULL,
- course_code varchar(20) NOT NULL,
- academic_year varchar(9) NOT NULL,
- session_date DATE NOT NULL,
- week_number TINYINT NOT NULL,
- old_status varchar(20) NOT NULL,
- new_status varchar(20) NOT NULL,
- updated_by varchar(255) NOT NULL,
- actor_email varchar(255) NOT NULL,
- updated_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
- INDEX (course_code,academic_year,session_date,week_number)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 SET FOREIGN_KEY_CHECKS=1;

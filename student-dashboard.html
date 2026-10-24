@@ -1,6 +1,17 @@
 {% extends 'base.html' %}{% block title %}My Attendance{% endblock %}{% block content %}
 <div class="page-title"><div><h1>My Attendance</h1><p class="muted" id="student-name"></p></div><span class="live" id="live-status" role="status">Live attendance</span></div>
 <section class="card"><div class="grid"><div><label for="my-year">Academic Year</label><select id="my-year"></select></div><div><label for="my-semester">Semester</label><select id="my-semester"><option value="">All semesters</option><option value="1">Semester 1</option><option value="2">Semester 2</option></select></div><div><label for="my-search">Search Module</label><input id="my-search" type="search"></div></div></section>
-<section class="card"><h2>My Modules</h2><div class="table-wrap"><table><thead><tr><th>Module</th><th>Present</th><th>Absent</th><th>Sessions Held</th><th>Attendance %</th><th>Status</th></tr></thead><tbody id="my-rows"></tbody></table></div><div id="my-pager" class="pager"></div><div id="prediction" class="warning" hidden></div><p id="my-message" class="message" role="status"></p></section>
-<section class="card" id="session-history" hidden><h2 id="session-title">Session Attendance</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Week</th><th>Status</th></tr></thead><tbody id="history-rows"></tbody></table></div><div id="history-pager" class="pager"></div></section>
+<section class="card"><h2>My Modules</h2><div class="table-wrap"><table><thead><tr><th>Module</th><th>Present</th><th>Absent</th><th>MC</th><th>SMC</th><th>Excused</th><th>Sessions Held</th><th>Attendance %</th><th>Status</th></tr></thead><tbody id="my-rows"></tbody></table></div><div id="my-pager" class="pager"></div><div id="prediction" class="warning" hidden></div><p id="my-message" class="message" role="status"></p></section>
+<section class="card" id="session-history" hidden><h2 id="session-title">Session Attendance</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Week</th><th>Status</th><th>Medical / Excuse Letter</th></tr></thead><tbody id="history-rows"></tbody></table></div><div id="history-pager" class="pager"></div></section>
+<dialog id="medical-dialog">
+<div class="dialog-head"><h2>Submit Medical / Excuse Letter</h2><button class="secondary" data-close="medical-dialog">Close</button></div>
+<p id="medical-session" class="muted"></p>
+<form id="medical-form">
+    <label for="medical-kind">Submission Type</label><select id="medical-kind" name="kind" required></select>
+    <label for="medical-file">Medical / Excuse Letter (PDF, JPG or PNG — maximum 2 MB)</label>
+    <input type="file" id="medical-file" name="file" accept=".pdf,.jpg,.jpeg,.png" required>
+    <div class="actions"><button id="submit-medical">Submit for Review</button></div>
+</form>
+<p id="medical-message" class="message" role="status"></p>
+</dialog>
 {% endblock %}{% block scripts %}<script src="/static/student.js"></script>{% endblock %}

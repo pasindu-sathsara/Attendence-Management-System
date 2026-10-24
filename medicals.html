@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Medical / Excuse Letter Submissions{% endblock %}
+{% block content %}
+<div class="page-title"><h1>Medical / Excuse Letter Submissions</h1></div>
+<section class="card">
+    <div class="grid"><div><label for="medical-filter">Review Status</label>
+    <select id="medical-filter"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All submissions</option></select></div></div>
+    <p id="review-message" class="message" role="status"></p>
+    <div class="table-wrap"><table><thead><tr><th>Registration No.</th><th>Name</th><th>Module</th><th>Session</th><th>Type</th><th>Status</th><th>Document</th><th>Review</th></tr></thead><tbody id="medical-rows"></tbody></table></div>
+    <div class="pager" id="medical-pager"></div>
+</section>
+{% endblock %}
+{% block scripts %}<script src="/static/medicals.js"></script>{% endblock %}

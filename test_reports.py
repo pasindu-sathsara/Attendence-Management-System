@@ -16,12 +16,13 @@ class ReportTests(unittest.TestCase):
   self.conn=sqlite3.connect(':memory:');self.conn.row_factory=sqlite3.Row
   from test_options import sql_functions
   sql_functions(self.conn)
-  self.conn.executescript('''CREATE TABLE student(email TEXT,reg_number TEXT,name TEXT);
+  self.conn.executescript('''CREATE TABLE lecturer(email TEXT,name TEXT,title TEXT);
+   CREATE TABLE lecturer_course(email TEXT,course_code TEXT,academic_year TEXT);
+   CREATE TABLE student(email TEXT,reg_number TEXT,name TEXT);
    CREATE TABLE course(course_code TEXT,study_year INT,semester_number INT);
    CREATE TABLE course_offering(course_code TEXT,academic_year TEXT,teaching_end TEXT);
    CREATE TABLE student_course(email TEXT,course_code TEXT,academic_year TEXT);
    CREATE TABLE class_session(course_code TEXT,academic_year TEXT,date TEXT,week_number INT,updated_by TEXT);
-   CREATE TABLE attendance_audit(student_email TEXT,course_code TEXT,academic_year TEXT,session_date TEXT,week_number INT,old_status TEXT,new_status TEXT,updated_by TEXT,updated_time TEXT);
    CREATE TABLE student_class_session(email TEXT,course_code TEXT,date TEXT,week_number INT,attendance_status INT,absent_reason TEXT);
    INSERT INTO student VALUES ('a','ICT/2024/001','Alpha'),('b','ICT/2024/002','Beta'),('c','ICT/2025/001','Gamma');
    INSERT INTO course VALUES ('ICT 1305',1,1),('COM 1301',1,1);
@@ -55,19 +56,19 @@ class ReportTests(unittest.TestCase):
   self.assertEqual(row['students'],2);self.assertEqual(row['percentage'],90)
   r=self.get('/api/report?academic_year=26/27&batch=24/25')
   row=next(r for r in r.json['rows'] if r['course_code']=='ICT 1305')
-  self.assertEqual(row['percentage'],0);self.assertEqual(row['students'],1)
- def test_empty_module_is_in_full_report(self):
+  self.assertEqual(row['percentage'],100);self.assertEqual(row['students'],1)
+ def test_empty_unenrolled_module_is_not_in_full_report(self):
   self.conn.execute("INSERT INTO course VALUES ('EMPTY',1,1)")
   self.conn.execute("INSERT INTO course_offering VALUES ('EMPTY','26/27',NULL)")
   r=self.get('/api/report?academic_year=26/27')
-  row=next(r for r in r.json['rows'] if r['course_code']=='EMPTY')
-  self.assertEqual(row['students'],0);self.assertIsNone(row['percentage'])
+  self.assertFalse(any(row['course_code']=='EMPTY' for row in r.json['rows']))
  def test_no_sessions_is_not_assessed(self):
   row=self.get('/api/report?course=COM+1301~26/27').json['rows'][0]
   self.assertEqual(row['total'],0);self.assertIsNone(row['percentage']);self.assertEqual(row['eligibility'],'Not assessed')
- def test_mc_is_absent_and_not_present(self):
+ def test_mc_counts_towards_attendance_and_is_separate_from_absent(self):
   row=self.get('/api/report?course=ICT+1305~26/27&batch=24/25').json['rows'][0]
-  self.assertEqual(row['absent'],5);self.assertEqual(row['present'],0);self.assertEqual(row['medical'],5)
+  self.assertEqual(row['absent'],0);self.assertEqual(row['present'],0);self.assertEqual(row['medical'],5)
+  self.assertEqual(row['percentage'],100);self.assertEqual(row['eligibility'],'Eligible')
  def test_dates_limit_denominator(self):
   row=self.get('/api/report?course=ICT+1305~26/27&batch=23/24&start=2099-01-05&end=2099-01-05').json['rows'][0]
   self.assertEqual(row['total'],1);self.assertEqual(row['present'],0)
@@ -80,8 +81,12 @@ class ReportTests(unittest.TestCase):
   response=self.get('/api/report.xlsx?course=ICT+1305~26/27&batch=23/24')
   self.assertEqual(response.status_code,200)
   book=load_workbook(io.BytesIO(response.data));rows=list(book.active.values)
-  self.assertEqual(rows[0],('Reg No','Name','Present','Absent','Total Sessions','Attendance %','Eligibility'))
-  self.assertEqual(rows[1],('ICT/2024/001','Alpha',4,1,5,80,'Ineligible'));self.assertEqual(len(rows),3)
+  self.assertEqual(book.sheetnames,['ICT 1305(T)'])
+  self.assertEqual(rows[6][:3],('S.No.','Registration No.','Name with Initials'))
+  self.assertEqual(rows[7][:3],(1,'ICT/2024/001','Alpha'))
+  self.assertEqual(rows[7][3:8],('P','P','P','P','A'))
+  self.assertEqual(rows[7][-8:],(4,1,0,0,0,5,80,'Ineligible'))
+  self.assertEqual(rows[8][1],'ICT/2024/002')
  def test_unmarked_not_invented_as_present_or_absent(self):
   self.conn.execute("DELETE FROM student_class_session WHERE email='a' AND week_number=5")
   row=self.get('/api/report?course=ICT+1305~26/27&batch=23/24').json['rows'][0]

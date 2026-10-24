@@ -77,7 +77,7 @@ class UpdatedFlowTests(BackendTests):
    with patch.object(backend,'query',side_effect=[course,None]) as query:
     from werkzeug.exceptions import Forbidden
     with self.assertRaises(Forbidden):backend.course_access('ICT 1305~26/27')
-    self.assertEqual(query.call_args.args[1],('staff@example.com','ICT 1305','26/27')*2)
+    self.assertEqual(query.call_args.args[1],('staff@example.com','ICT 1305','26/27'))
  def test_roster_uses_exact_module_enrolment(self):
   with patch.object(backend,'query',return_value=[]) as query:
    backend.roster({'course_code':'ICT 1305','academic_year':'26/27'})

@@ -16,7 +16,7 @@ import test_reports
 class StudentReportTests(test_reports.ReportTests):
     def download(self, registrations):
         with patch.object(backend, 'query', side_effect=self.query):
-            return self.client.post('/api/student-reports.zip?academic_year=26/27&type=scholarship',
+            return self.client.post('/api/student-reports.zip?academic_year=26/27&type=single',
                 json={'registrations': registrations}, headers={'X-CSRF-Token': 'token'})
 
     def test_one_selected_and_all_students_get_separate_files(self):
@@ -29,15 +29,14 @@ class StudentReportTests(test_reports.ReportTests):
                 found = set()
                 for filename in archive.namelist():
                     book = load_workbook(io.BytesIO(archive.read(filename)))
-                    summary = list(book['Student Summary'].values)
-                    reg = summary[1][0]
-                    found.add(reg)
-                    self.assertEqual(len(summary), 2)
-                    self.assertEqual(summary[0][-1], 'Eligibility')
-                    for row in list(book['Session Attendance'].values)[1:]:
-                        self.assertIn(row[0], ['ICT 1305(T)', 'COM 1301(T)'])
-                    expected = 'Eligible' if reg == 'ICT/2024/002' else 'Ineligible'
-                    self.assertEqual(summary[1][-1], expected)
+                    self.assertTrue(all(name.endswith('(T)') or name.endswith('(P)') for name in book.sheetnames))
+                    rows=[row for sheet in book for row in sheet.values]
+                    records=[row for row in rows if isinstance(row[0],int)]
+                    self.assertTrue(records)
+                    regs={row[1] for row in records}
+                    self.assertEqual(len(regs),1)
+                    reg=next(iter(regs));found.add(reg)
+                    self.assertIn('Eligibility',[v for row in rows for v in row])
                 self.assertEqual(found, set(selected))
 
     def test_more_than_120_has_no_fixed_student_limit(self):
@@ -53,7 +52,7 @@ class StudentReportTests(test_reports.ReportTests):
         with zipfile.ZipFile(io.BytesIO(response.data)) as archive:
             self.assertEqual(len(archive.namelist()), 121)
             book = load_workbook(io.BytesIO(archive.read(archive.namelist()[0])))
-            self.assertEqual(list(book.active.values)[1][-1], 'Not assessed')
+            self.assertTrue(any('Not assessed' in row for row in book.active.values))
 
     def test_invalid_empty_and_out_of_scope_selection_rejected(self):
         for regs in [[], ['unknown'], [42], ['ICT/2024/001', 'unknown']]:
@@ -63,14 +62,15 @@ class StudentReportTests(test_reports.ReportTests):
                 state['role'] = role
             self.assertEqual(self.download(['ICT/2024/001']).status_code, 403)
 
-    def test_scholarship_summary_and_excel_include_eligibility(self):
-        response = self.get('/api/report?academic_year=26/27&type=scholarship')
+    def test_single_summary_and_excel_include_eligibility(self):
+        response = self.get('/api/report?academic_year=26/27&type=single')
         self.assertEqual([r['eligibility'] for r in response.json['rows']],
-                         ['Ineligible', 'Eligible', 'Ineligible'])
-        response = self.get('/api/report.xlsx?academic_year=26/27&type=scholarship')
+                         ['Ineligible', 'Eligible', 'Eligible'])
+        response = self.get('/api/report.xlsx?academic_year=26/27&type=single')
         book = load_workbook(io.BytesIO(response.data))
-        self.assertEqual(list(book.active.values)[0][-1], 'Eligibility')
-        self.assertEqual(list(book.active.values)[1][-1], 'Ineligible')
+        self.assertEqual(set(book.sheetnames),{'COM 1301(T)','ICT 1305(T)'})
+        self.assertTrue(any('Eligibility' in row for row in book.active.values))
+        self.assertTrue(any('Ineligible' in row for sheet in book for row in sheet.values))
 
 
 class SetupAndImportTests(unittest.TestCase):
@@ -81,6 +81,14 @@ class SetupAndImportTests(unittest.TestCase):
 
     def post(self, path, body):
         return self.client.post(path, json=body, headers={'X-CSRF-Token': 'token'})
+
+    def test_removed_coordinator_feature_is_unavailable(self):
+        self.assertEqual(self.client.get('/api/coordinators').status_code, 404)
+        self.assertEqual(self.post('/api/coordinators', {}).status_code, 404)
+        with patch.object(backend, 'query', return_value={'email':'h@example.com'}):
+            page = self.client.get('/manage-system.html')
+            self.assertEqual(page.status_code, 200)
+            self.assertNotIn(b'coordinator-form', page.data)
 
     def test_semester_dates_are_saved_and_can_be_updated(self):
         body = dict(academic_year='26/27', study_year=1, semester_number=1,

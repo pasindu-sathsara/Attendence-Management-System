@@ -19,3 +19,5 @@ if($('logout'))$('logout').onclick=async()=>{try{const role=document.body.datase
 
 document.querySelectorAll('[data-eye]').forEach(button=>button.onclick=()=>{const input=$(button.dataset.eye);input.type=input.type==='password'?'text':'password';button.setAttribute('aria-label',input.type==='password'?'Show password':'Hide password');button.setAttribute('aria-pressed',input.type==='text');});
 function moduleLabel(code){return /\([TP]\)$/.test(code)?code:code+'(T)';}
+
+function submissionType(kind){return {normal:'Medical (MC)',special:'Special Medical (SMC)',excuse:'Excuse Letter'}[kind] || 'Document';}

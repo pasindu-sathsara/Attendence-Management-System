@@ -1,7 +1,54 @@
 let records=[],chosenModule='',studentPage=1,history=[],busy=false,historyRequest=0;
-function prediction(rows){const warnings=rows.filter(r=>r.prediction==='Cannot reach threshold'||r.prediction==='Check session plan');$('prediction').replaceChildren();$('prediction').hidden=!warnings.length;warnings.forEach(r=>{const p=document.createElement('p');p.textContent=r.prediction==='Check session plan'?moduleLabel(r.course_code)+': session total exceeds the 14-session plan. Contact the department.':`${moduleLabel(r.course_code)}: the attendance requirement is no longer reachable. ${r.present} of ${r.total} sessions attended; ${r.remaining} remaining out of 14. Best possible final attendance: ${Number(r.maximum).toFixed(2)}%. Please contact your lecturer.`;$('prediction').append(p);});}
-function render(page=1){const rows=records.filter(r=>r.academic_year===$('my-year').value&&(!$('my-semester').value||String(r.semester_number)===$('my-semester').value)&&r.course_code.toLowerCase().includes($('my-search').value.toLowerCase()));studentPage=Math.min(page,Math.max(1,Math.ceil(rows.length/10)));tableRows($('my-rows'),rows.slice((studentPage-1)*10,studentPage*10),[r=>{const b=document.createElement('button');b.className='link';b.textContent=moduleLabel(r.course_code);b.onclick=()=>{chosenModule=r.course_code+'~'+r.academic_year;loadHistory();};return b;},r=>r.present,r=>r.absent,r=>r.total,percentage,r=>r.prediction]);pager('my-pager',{total:rows.length,page:studentPage,pages:Math.max(1,Math.ceil(rows.length/10))},render);prediction(rows);if(chosenModule&&!rows.some(r=>r.course_code+'~'+r.academic_year===chosenModule)){chosenModule='';$('session-history').hidden=true;}}
-function historyPage(page=1){tableRows($('history-rows'),history.slice((page-1)*10,page*10),[r=>r.date,r=>r.week,r=>({present:'Present',absent:'Absent',medical:'Medical (MC)',special:'Special Medical'}[r.status]||r.status)]);pager('history-pager',{total:history.length,page,pages:Math.max(1,Math.ceil(history.length/10))},historyPage);}
+function prediction(rows){const warnings=rows.filter(r=>r.prediction==='Cannot reach threshold'||r.prediction==='Check session plan');$('prediction').replaceChildren();$('prediction').hidden=!warnings.length;warnings.forEach(r=>{const p=document.createElement('p');p.textContent=r.prediction==='Check session plan'?moduleLabel(r.course_code)+': session total exceeds the 14-session plan. Contact the department.':`${moduleLabel(r.course_code)}: the attendance requirement is no longer reachable. ${r.credited} of ${r.total} sessions counted; ${r.remaining} remaining out of 14. Best possible final attendance: ${Number(r.maximum).toFixed(2)}%. Please contact your lecturer.`;$('prediction').append(p);});}
+function render(page=1){const rows=records.filter(r=>r.academic_year===$('my-year').value&&(!$('my-semester').value||String(r.semester_number)===$('my-semester').value)&&r.course_code.toLowerCase().includes($('my-search').value.toLowerCase()));studentPage=Math.min(page,Math.max(1,Math.ceil(rows.length/10)));tableRows($('my-rows'),rows.slice((studentPage-1)*10,studentPage*10),[r=>{const b=document.createElement('button');b.className='link';b.textContent=moduleLabel(r.course_code);b.onclick=()=>{chosenModule=r.course_code+'~'+r.academic_year;loadHistory();};return b;},r=>r.present,r=>r.absent,r=>r.medical,r=>r.special,r=>r.excused,r=>r.total,percentage,r=>r.prediction]);pager('my-pager',{total:rows.length,page:studentPage,pages:Math.max(1,Math.ceil(rows.length/10))},render);prediction(rows);if(chosenModule&&!rows.some(r=>r.course_code+'~'+r.academic_year===chosenModule)){chosenModule='';$('session-history').hidden=true;}}
+let medicalTarget = null;
+function medicalActions(row) {
+    const box = document.createElement('div'); box.className = 'medical-actions';
+    if (row.medical_status) {
+        const label = document.createElement('span');
+        label.textContent = submissionType(row.medical_kind) + ': ' + row.medical_status;
+        box.append(label);
+    }
+    if (row.has_file) {
+        const link = document.createElement('a'); link.textContent = 'Download';
+        link.href = '/api/medical-file?' + new URLSearchParams({course: chosenModule, session: row.date + '|' + row.week});
+        box.append(link);
+    }
+    if (row.normal || row.special) {
+        const button = document.createElement('button'); button.className = 'secondary'; button.textContent = 'Submit Medical / Excuse Letter';
+        button.onclick = () => {
+            medicalTarget = {course: chosenModule, session: row.date + '|' + row.week};
+            $('medical-form').reset(); $('medical-kind').replaceChildren();
+            if (row.normal) {
+                $('medical-kind').add(new Option('Medical (MC)', 'normal'));
+                $('medical-kind').add(new Option('Excuse Letter', 'excuse'));
+            }
+            if (row.special) $('medical-kind').add(new Option('Special Medical — AR review', 'special'));
+            $('medical-session').textContent = moduleLabel(chosenModule.split('~')[0]) + ' · ' + row.date;
+            message('medical-message', ''); $('medical-dialog').showModal();
+        };
+        box.append(button);
+    }
+    if (!box.childNodes.length) box.textContent = '—';
+    return box;
+}
+function historyPage(page=1) {
+    tableRows($('history-rows'),history.slice((page-1)*10,page*10),[r=>r.date,r=>r.week,
+        r=>({present:'Present',absent:'Absent',medical:'Medical (MC)',special:'Special Medical',excused:'Excused'}[r.status]||r.status),medicalActions]);
+    pager('history-pager',{total:history.length,page,pages:Math.max(1,Math.ceil(history.length/10))},historyPage);
+}
+$('medical-form').onsubmit = async event => {
+    event.preventDefault(); if (!medicalTarget) return;
+    const payload = new FormData(event.target);
+    payload.set('course', medicalTarget.course); payload.set('session', medicalTarget.session);
+    $('submit-medical').disabled = true;
+    try {
+        await api('/api/medical-upload', payload);
+        $('medical-dialog').close(); await loadHistory();
+        message('my-message', 'Document submitted for review.');
+    } catch (error) { message('medical-message', error.message, true); }
+    finally { $('submit-medical').disabled = false; }
+};
 async function loadHistory(){const course=chosenModule,id=++historyRequest;if(!course)return;try{const r=await api('/api/my-sessions?'+new URLSearchParams({course}));if(id!==historyRequest||course!==chosenModule)return;history=r.rows;$('session-title').textContent=moduleLabel(course.split('~')[0])+' · Session Attendance';$('session-history').hidden=false;historyPage();}catch(e){message('my-message',e.message,true);}}
 async function refresh(){if(busy||document.hidden)return;busy=true;try{const r=await api('/api/my-attendance');records=r.rows;$('student-name').textContent=r.student.reg_number+' · '+r.student.name;const year=$('my-year').value;const years=[...new Set(records.map(r=>r.academic_year))];fillSelect('my-year',years,r=>r,r=>r,'Select academic year');$('my-year').value=years.includes(year)?year:years[0]||'';render(studentPage);await loadHistory();$('live-status').textContent='Live attendance';message('my-message','');}catch(e){$('live-status').textContent='Unable to refresh';message('my-message',e.message,true);}finally{busy=false;}}
 $('my-year').onchange=()=>render();$('my-semester').onchange=()=>render();$('my-search').oninput=()=>render();
